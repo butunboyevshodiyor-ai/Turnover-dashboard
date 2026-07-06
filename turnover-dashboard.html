@@ -377,6 +377,16 @@
 
         function categorizePayment(purpose, isCredit) {
             const p = (purpose || '').toLowerCase();
+            const pTrimmed = (purpose || '').trim();
+            
+            // === CODE-BASED CATEGORIZATION (priority) ===
+            // Check payment code at the beginning of назначение платежа
+            if (pTrimmed.startsWith('00524') || p.includes('00524')) {
+                return isCredit ? 'Торговые выручки' : 'Оплата за товар';
+            }
+            if (pTrimmed.startsWith('00624') || p.includes('00624')) {
+                return isCredit ? 'Уставное пополнение' : 'Уставное уменьшение';
+            }
             
             // === CREDIT categories (incoming money) ===
             if (isCredit) {
