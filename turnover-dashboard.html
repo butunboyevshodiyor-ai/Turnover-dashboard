@@ -33,10 +33,10 @@
         .kpi-card .value { font-size: 22px; font-weight: bold; color: #1a1a2e; }
         .kpi-card .change { font-size: 12px; color: #4caf50; }
         .kpi-card .icon { font-size: 36px; }
-        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .chart-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .chart-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 30px; }
         .chart-card h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 15px; }
         .chart-container { position: relative; height: 300px; }
+        .pie-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
         .tables-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px; }
         .table-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
         .table-card h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 15px; }
@@ -54,8 +54,8 @@
         .category-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
         #fileInput { display: none; }
         .debug-box { background: #fff3e0; border: 1px solid #ffcc80; border-radius: 10px; padding: 15px; margin-bottom: 20px; font-size: 13px; color: #e65100; display: none; }
-        @media (max-width: 1200px) { .tables-row { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; } .charts-row { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 1200px) { .tables-row { grid-template-columns: 1fr; } .pie-row { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
     </style>
 </head>
 <body>
@@ -88,33 +88,47 @@
             <p>Загрузите файл Excel с банковской выпиской (формат Garant Bank / IABS). Система автоматически найдёт колонки: Наименование кореспондента, Сумма дебита, Сумма кредита, Дата, Назначение платежа.</p>
         </div>
         <div class="debug-box" id="debugBox"></div>
+
+        <!-- KPI Cards -->
         <div class="kpi-grid" id="kpiSection" style="display:none;">
             <div class="kpi-card"><div><h3>Итого оборот (кредит)</h3><div class="value" id="totalCredit">&mdash;</div><div class="change" id="totalCreditChange"></div></div><span class="icon">&#128176;</span></div>
             <div class="kpi-card"><div><h3>Средний оборот в месяц</h3><div class="value" id="avgMonthly">&mdash;</div><div class="change" id="avgMonthlyChange"></div></div><span class="icon">&#128200;</span></div>
             <div class="kpi-card"><div><h3>Лучший месяц</h3><div class="value" id="bestMonth">&mdash;</div><div class="change" id="bestMonthChange"></div></div><span class="icon">&#127942;</span></div>
             <div class="kpi-card"><div><h3>Темп роста (YoY)</h3><div class="value" id="growthRate">&mdash;</div><div class="change" id="growthRateChange"></div></div><span class="icon">&#128201;</span></div>
         </div>
-        <div class="charts-row" id="chartsSection" style="display:none;">
-            <div class="chart-card"><h3>Динамика оборота по месяцам</h3><div class="chart-container"><canvas id="monthlyChart"></canvas></div></div>
+
+        <!-- PIE CHARTS FIRST (visible) -->
+        <div class="pie-row" id="pieSection" style="display:none;">
             <div class="chart-card">
-                <h3>Оборот по категориям</h3>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div style="position:relative; text-align:center; height: 320px;">
-                        <p style="font-size:12px; color:#4fc3f7; font-weight:600; margin-bottom:5px;">КРЕДИТ</p>
-                        <canvas id="categoryCreditChart"></canvas>
-                    </div>
-                    <div style="position:relative; text-align:center; height: 320px;">
-                        <p style="font-size:12px; color:#ff7043; font-weight:600; margin-bottom:5px;">ДЕБЕТ</p>
-                        <canvas id="categoryDebitChart"></canvas>
-                    </div>
+                <h3 style="color:#4fc3f7;">&#11014; Оборот по категориям — КРЕДИТ</h3>
+                <div style="position:relative; height: 350px;">
+                    <canvas id="categoryCreditChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3 style="color:#ff7043;">&#11015; Оборот по категориям — ДЕБЕТ</h3>
+                <div style="position:relative; height: 350px;">
+                    <canvas id="categoryDebitChart"></canvas>
                 </div>
             </div>
         </div>
+
+        <!-- MONTHLY CHART BELOW (full width, wider) -->
+        <div class="chart-card" id="monthlySection" style="display:none;">
+            <h3>Динамика оборота по месяцам</h3>
+            <div style="position:relative; height: 350px;">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tables Row -->
         <div class="tables-row" id="tablesSection" style="display:none;">
             <div class="table-card"><h3>&#11015; Топ клиенты по дебету</h3><table class="data-table" id="topDebitTable"><thead><tr><th>Клиент</th><th>Сумма</th></tr></thead><tbody></tbody></table></div>
             <div class="table-card"><h3>&#11014; Топ клиенты по кредиту</h3><table class="data-table" id="topCreditTable"><thead><tr><th>Клиент</th><th>Сумма</th></tr></thead><tbody></tbody></table></div>
-            <div class="table-card"><h3>Оборот по годам</h3><div class="chart-container" style="height:250px;"><canvas id="yearlyChart"></canvas></div></div>
+            <div class="table-card"><h3>Оборот по годам</h3><div style="position:relative; height:250px;"><canvas id="yearlyChart"></canvas></div></div>
         </div>
+
+        <!-- Brief Overview with Search -->
         <div class="operations-section" id="operationsSection" style="display:none;">
             <h3>&#128269; Краткий обзор операций</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
@@ -136,7 +150,7 @@
                 </div>
             </div>
             <input type="text" class="search-box" id="searchBox" placeholder="&#128269; Поиск по клиенту, назначению, сумме, дате..." oninput="filterOperations()">
-            <div id="searchResults" style="max-height: 350px; overflow-y: auto;">
+            <div id="searchResults" style="max-height: 350px; overflow-y: auto; display:none;">
                 <table class="operations-table" id="operationsTable">
                     <thead><tr><th>Дата</th><th>Наименование кореспондента</th><th>Назначение платежа</th><th>Категория</th><th>Сумма кредита</th><th>Сумма дебита</th></tr></thead>
                     <tbody></tbody>
@@ -147,6 +161,7 @@
             </div>
         </div>
     </div>
+
     <script>
         let allData = [];
         let monthlyChartInstance = null;
@@ -169,10 +184,7 @@
                     const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                     const sheetName = workbook.SheetNames[0];
                     const sheet = workbook.Sheets[sheetName];
-                    
-                    // Convert to array of arrays to handle complex header structure
                     const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
-                    
                     processRawData(rawData);
                 } catch(err) {
                     showDebug('Ошибка чтения файла: ' + err.message);
@@ -188,29 +200,22 @@
         }
 
         function processRawData(rawData) {
-            // Find the header row by looking for key columns
             let headerRowIdx = -1;
             let colMap = {};
             
             for (let i = 0; i < Math.min(rawData.length, 20); i++) {
                 const row = rawData[i];
                 if (!row) continue;
-                
                 const rowStr = row.map(c => String(c || '').trim().toLowerCase());
-                
-                // Look for key column names
                 let foundDebit = -1, foundCredit = -1, foundDate = -1, foundClient = -1, foundPurpose = -1;
-                
                 for (let j = 0; j < rowStr.length; j++) {
                     const cell = rowStr[j];
                     if (cell.includes('сумма дебит') || cell === 'сумма дебита') foundDebit = j;
                     if (cell.includes('сумма кредит') || cell === 'сумма кредита') foundCredit = j;
                     if (cell === 'дата') foundDate = j;
-                    if (cell.includes('наименование кореспондента') || cell.includes('наименование корреспондента') || cell.includes('наим') && cell.includes('коресп')) foundClient = j;
-                    if (cell.includes('назначение платежа') || cell.includes('назначение')) foundPurpose = j;
+                    if (cell.includes('наименование кореспондента') || cell.includes('наименование корреспондента')) foundClient = j;
+                    if (cell.includes('назначение платежа')) foundPurpose = j;
                 }
-                
-                // If we found at least debit/credit and date, this is our header
                 if ((foundDebit >= 0 || foundCredit >= 0) && foundDate >= 0) {
                     headerRowIdx = i;
                     colMap = { debit: foundDebit, credit: foundCredit, date: foundDate, client: foundClient, purpose: foundPurpose };
@@ -219,61 +224,48 @@
             }
             
             if (headerRowIdx === -1) {
-                showDebug('Не удалось найти заголовки. Убедитесь что файл содержит колонки: Сумма дебита, Сумма кредита, Дата, Наименование кореспондента, Назначение платежа');
+                showDebug('Не удалось найти заголовки. Убедитесь что файл содержит колонки: Сумма дебита, Сумма кредита, Дата');
                 return;
             }
 
-            // Parse data rows (skip header row and any sub-header rows)
             allData = [];
             for (let i = headerRowIdx + 1; i < rawData.length; i++) {
                 const row = rawData[i];
                 if (!row || row.length === 0) continue;
-                
-                // Skip summary/total rows
                 const firstCell = String(row[0] || '').toLowerCase();
                 if (firstCell.includes('итого') || firstCell.includes('остаток')) continue;
-                
-                // Skip rows that look like sub-headers (e.g. "Корес" / "понд")
                 const rowJoined = row.join('').trim();
                 if (rowJoined.length < 5) continue;
                 
-                // Get values
                 const dateVal = colMap.date >= 0 ? row[colMap.date] : '';
                 const debitVal = colMap.debit >= 0 ? row[colMap.debit] : 0;
                 const creditVal = colMap.credit >= 0 ? row[colMap.credit] : 0;
                 const clientVal = colMap.client >= 0 ? String(row[colMap.client] || '').trim() : '';
                 const purposeVal = colMap.purpose >= 0 ? String(row[colMap.purpose] || '').trim() : '';
                 
-                // Parse date
                 const date = parseDate(dateVal);
                 if (!date) continue;
-                
-                // Parse numbers
                 const debit = parseNumber(debitVal);
                 const credit = parseNumber(creditVal);
-                
-                // Skip rows with no amounts
                 if (debit === 0 && credit === 0) continue;
                 
                 const isCredit = credit > 0;
                 const category = categorizePayment(purposeVal, isCredit);
-                
                 allData.push({ date, credit, debit, client: clientVal, purpose: purposeVal, category });
             }
 
             if (allData.length === 0) {
-                showDebug('Данные не найдены. Проверьте формат файла. Найден заголовок в строке ' + (headerRowIdx + 1) + ', но данные не распознаны.');
+                showDebug('Данные не найдены. Проверьте формат файла.');
                 return;
             }
 
-            // Sort by date
             allData.sort((a, b) => a.date - b.date);
 
-            // Hide info/debug, show dashboard
             document.getElementById('infoBox').style.display = 'none';
             document.getElementById('debugBox').style.display = 'none';
             document.getElementById('kpiSection').style.display = '';
-            document.getElementById('chartsSection').style.display = '';
+            document.getElementById('pieSection').style.display = '';
+            document.getElementById('monthlySection').style.display = '';
             document.getElementById('tablesSection').style.display = '';
             document.getElementById('operationsSection').style.display = '';
 
@@ -282,32 +274,77 @@
             }
 
             updateKPIs();
-            updateMonthlyChart();
             updateCategoryChart();
+            updateMonthlyChart();
             updateTopClients();
             updateYearlyChart();
             updateOperationsTable();
         }
 
+        // ==========================================
+        // CATEGORIZATION LOGIC
+        // ==========================================
+        function categorizePayment(purpose, isCredit) {
+            const p = (purpose || '').toLowerCase();
+            
+            if (isCredit) {
+                // --- КРЕДИТ ---
+                // Торговые выручки
+                if (p.includes('00524') || p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци') || p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('реализац') || p.includes('выручк') || p.includes('savdo') || p.includes('tushum')) return 'Торговые выручки';
+                if (p.includes('оплата') || p.includes('tulov') || p.includes('shartnoma') || p.includes('договор')) return 'Торговые выручки';
+                
+                // Возврат Фин займ
+                if (p.includes('фин займ') || p.includes('займ') || p.includes('фин. займ') || p.includes('финансовый займ') || p.includes('moliyaviy qarz') || p.includes('qarz qaytarish')) return 'Возврат Фин займ';
+                
+                // Пополнения уставного фонда
+                if (p.includes('устав') || p.includes('пополнени') || p.includes('попольнени') || p.includes('уставн') || p.includes('00624') || p.includes('ustav') || p.includes('nizom fondi')) return 'Пополнения уставного фонда';
+                
+                // Возврат Налог
+                if (p.includes('возврат') && (p.includes('ндс') || p.includes('налог') || p.includes('гнк'))) return 'Возврат Налог';
+                if (p.includes('возврат ндс') || p.includes('гнк') || p.includes('согласно заключени')) return 'Возврат Налог';
+                if (p.includes('возврат') && p.includes('soliq')) return 'Возврат Налог';
+                
+                // Переброска
+                if (p.includes('иккиламчи') || p.includes('асосий') || p.includes('ҳисобрақам') || p.includes('ўтказма') || p.includes('переброск') || p.includes('перевод между счет')) return 'Переброска';
+                
+                return 'Прочее';
+            } else {
+                // --- ДЕБЕТ ---
+                // Оплата за товар и услуги
+                if (p.includes('00524') || p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци') || p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('поставк') || p.includes('материал') || p.includes('закупк') || p.includes('сырье')) return 'Оплата за товар и услуги';
+                if (p.includes('оплата') || p.includes('tulov') || p.includes('shartnoma') || p.includes('договор') || p.includes('услуг') || p.includes('xizmat')) return 'Оплата за товар и услуги';
+                
+                // Возврат Фин займ
+                if (p.includes('фин займ') || p.includes('займ') || p.includes('фин. займ') || p.includes('финансовый займ') || p.includes('moliyaviy qarz') || p.includes('qarz')) return 'Возврат Фин займ';
+                
+                // Уменьшения уставного фонда
+                if (p.includes('устав') || p.includes('уменьшени') || p.includes('попольнени') || p.includes('уставн') || p.includes('00624') || p.includes('ustav') || p.includes('nizom fondi')) return 'Уменьшения уставного фонда';
+                
+                // Оплата Налог
+                if (p.includes('ндс') || p.includes('гнк') || p.includes('налог') || p.includes('soliq') || p.includes('qqs') || p.includes('бюджет') || p.includes('byudjet') || p.includes('ндфл')) return 'Оплата Налог';
+                if (p.includes('согласно заключени') && p.includes('ндс')) return 'Оплата Налог';
+                
+                // Кредит погашения
+                if (p.includes('кредит') || p.includes('kredit') || p.includes('погашени') || p.includes('основного долга') || p.includes('процент') || p.includes('пени') || p.includes('тўлови') || p.includes('foiz') || p.includes('asosiy qarz')) return 'Кредит погашения';
+                
+                // Переброска
+                if (p.includes('иккиламчи') || p.includes('асосий') || p.includes('ҳисобрақам') || p.includes('ўтказма') || p.includes('переброск') || p.includes('перевод между счет')) return 'Переброска';
+                
+                return 'Прочее';
+            }
+        }
+
+        // ==========================================
+        // UTILITY FUNCTIONS
+        // ==========================================
         function parseNumber(val) {
             if (val === null || val === undefined || val === '') return 0;
             if (typeof val === 'number') return val;
-            // Remove spaces, replace comma thousands separator
-            let str = String(val).trim();
-            // Handle format like "4,000,000.00" or "4 000 000.00"
-            str = str.replace(/\s/g, '');
-            // If has both commas and dots: commas are thousands, dot is decimal
-            if (str.includes(',') && str.includes('.')) {
-                str = str.replace(/,/g, '');
-            } 
-            // If only commas: could be thousands separator or decimal
+            let str = String(val).trim().replace(/\s/g, '');
+            if (str.includes(',') && str.includes('.')) { str = str.replace(/,/g, ''); }
             else if (str.includes(',') && !str.includes('.')) {
-                // If comma is followed by exactly 2 digits at end, treat as decimal
-                if (/,\d{2}$/.test(str) && (str.match(/,/g) || []).length === 1) {
-                    str = str.replace(',', '.');
-                } else {
-                    str = str.replace(/,/g, '');
-                }
+                if (/,\d{2}$/.test(str) && (str.match(/,/g) || []).length === 1) { str = str.replace(',', '.'); }
+                else { str = str.replace(/,/g, ''); }
             }
             const num = parseFloat(str);
             return isNaN(num) ? 0 : num;
@@ -315,264 +352,178 @@
 
         function parseDate(val) {
             if (!val) return null;
-            
-            // If already a Date object
             if (val instanceof Date && !isNaN(val.getTime())) return val;
-            
-            // If number (Excel serial date)
-            if (typeof val === 'number') {
-                const utc_days = Math.floor(val - 25569);
-                return new Date(utc_days * 86400 * 1000);
-            }
-            
+            if (typeof val === 'number') { return new Date(Math.floor(val - 25569) * 86400 * 1000); }
             let str = String(val).trim();
             if (!str) return null;
-            
-            // Try format: M/D/YY H:MM or MM/DD/YY (US format from Excel)
             let match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-            if (match) {
-                let month = parseInt(match[1]) - 1;
-                let day = parseInt(match[2]);
-                let year = parseInt(match[3]);
-                if (year < 100) year += 2000;
-                if (month >= 0 && month < 12 && day >= 1 && day <= 31) {
-                    return new Date(year, month, day);
-                }
-            }
-            
-            // Try DD.MM.YYYY
+            if (match) { let m=parseInt(match[1])-1, d=parseInt(match[2]), y=parseInt(match[3]); if(y<100)y+=2000; if(m>=0&&m<12&&d>=1&&d<=31) return new Date(y,m,d); }
             match = str.match(/^(\d{1,2})[.\-](\d{1,2})[.\-](\d{2,4})/);
-            if (match) {
-                let day = parseInt(match[1]);
-                let month = parseInt(match[2]) - 1;
-                let year = parseInt(match[3]);
-                if (year < 100) year += 2000;
-                if (month >= 0 && month < 12 && day >= 1 && day <= 31) {
-                    return new Date(year, month, day);
-                }
-            }
-            
-            // Try YYYY-MM-DD
+            if (match) { let d=parseInt(match[1]), m=parseInt(match[2])-1, y=parseInt(match[3]); if(y<100)y+=2000; if(m>=0&&m<12&&d>=1&&d<=31) return new Date(y,m,d); }
             match = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-            if (match) {
-                let year = parseInt(match[1]);
-                let month = parseInt(match[2]) - 1;
-                let day = parseInt(match[3]);
-                return new Date(year, month, day);
-            }
-            
-            // Fallback
+            if (match) { return new Date(parseInt(match[1]), parseInt(match[2])-1, parseInt(match[3])); }
             const d = new Date(str);
             return isNaN(d.getTime()) ? null : d;
         }
 
-        function formatDate(date) {
-            if (!date) return '';
-            return date.getDate().toString().padStart(2,'0') + '.' + (date.getMonth()+1).toString().padStart(2,'0') + '.' + date.getFullYear();
-        }
+        function formatDate(date) { if (!date) return ''; return date.getDate().toString().padStart(2,'0')+'.'+( date.getMonth()+1).toString().padStart(2,'0')+'.'+date.getFullYear(); }
+        function formatNumber(num) { if(num>=1e12) return (num/1e12).toFixed(2)+' трлн'; if(num>=1e9) return (num/1e9).toFixed(2)+' млрд'; if(num>=1e6) return (num/1e6).toFixed(2)+' млн'; if(num>=1e3) return (num/1e3).toFixed(1)+' тыс'; return num.toFixed(0); }
+        function getMonthKey(date) { return date.getFullYear()+'-'+(date.getMonth()+1).toString().padStart(2,'0'); }
+        function getMonthLabel(key) { const months=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']; const [y,m]=key.split('-'); return months[parseInt(m)-1]+' '+y; }
 
-        function formatNumber(num) {
-            if (num >= 1e12) return (num/1e12).toFixed(2) + ' трлн';
-            if (num >= 1e9) return (num/1e9).toFixed(2) + ' млрд';
-            if (num >= 1e6) return (num/1e6).toFixed(2) + ' млн';
-            if (num >= 1e3) return (num/1e3).toFixed(1) + ' тыс';
-            return num.toFixed(0);
-        }
-
-        function categorizePayment(purpose, isCredit) {
-            const p = (purpose || '').toLowerCase();
-            const pTrimmed = (purpose || '').trim();
-            
-            // === MAIN PAYMENT GROUPS (by code) ===
-            if (pTrimmed.startsWith('00524') || p.includes('00524')) {
-                return isCredit ? 'Торговые выручки' : 'Оплата за товар';
-            }
-            if (pTrimmed.startsWith('00624') || p.includes('00624')) {
-                return isCredit ? 'Уставное пополнение' : 'Уставное уменьшение';
-            }
-            
-            // === Everything else (commissions, small amounts) = Прочее ===
-            return 'Прочее';
-        }
-
-        function getMonthKey(date) { return date.getFullYear() + '-' + (date.getMonth()+1).toString().padStart(2,'0'); }
-        function getMonthLabel(key) { const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']; const [year, month] = key.split('-'); return months[parseInt(month)-1] + ' ' + year; }
-
+        // ==========================================
+        // KPI
+        // ==========================================
         function updateKPIs() {
-            const totalCredit = allData.reduce((sum, r) => sum + r.credit, 0);
-            const totalDebit = allData.reduce((sum, r) => sum + r.debit, 0);
+            const totalCredit = allData.reduce((s,r) => s+r.credit, 0);
             const monthlyData = {};
-            allData.forEach(r => { const key = getMonthKey(r.date); if (!monthlyData[key]) monthlyData[key] = 0; monthlyData[key] += r.credit; });
+            allData.forEach(r => { const k=getMonthKey(r.date); if(!monthlyData[k]) monthlyData[k]=0; monthlyData[k]+=r.credit; });
             const monthKeys = Object.keys(monthlyData).sort();
-            const avgMonthly = totalCredit / (monthKeys.length || 1);
-            let bestMonthKey = '', bestMonthVal = 0;
-            monthKeys.forEach(key => { if (monthlyData[key] > bestMonthVal) { bestMonthVal = monthlyData[key]; bestMonthKey = key; } });
+            const avgMonthly = totalCredit/(monthKeys.length||1);
+            let bestMonthKey='', bestMonthVal=0;
+            monthKeys.forEach(k => { if(monthlyData[k]>bestMonthVal){bestMonthVal=monthlyData[k];bestMonthKey=k;} });
             const yearlyData = {};
-            allData.forEach(r => { const y = r.date.getFullYear(); if (!yearlyData[y]) yearlyData[y] = 0; yearlyData[y] += r.credit; });
+            allData.forEach(r => { const y=r.date.getFullYear(); if(!yearlyData[y]) yearlyData[y]=0; yearlyData[y]+=r.credit; });
             const years = Object.keys(yearlyData).sort();
             let growth = 0;
-            if (years.length >= 2) { const lastYear = yearlyData[years[years.length-1]]; const prevYear = yearlyData[years[years.length-2]]; if (prevYear > 0) growth = ((lastYear - prevYear) / prevYear * 100); }
+            if(years.length>=2){ const l=yearlyData[years[years.length-1]], p2=yearlyData[years[years.length-2]]; if(p2>0) growth=((l-p2)/p2*100); }
             document.getElementById('totalCredit').textContent = formatNumber(totalCredit);
             document.getElementById('avgMonthly').textContent = formatNumber(avgMonthly);
             document.getElementById('bestMonth').textContent = bestMonthKey ? getMonthLabel(bestMonthKey) : '—';
             document.getElementById('bestMonthChange').textContent = bestMonthVal ? formatNumber(bestMonthVal) : '';
-            document.getElementById('growthRate').textContent = growth ? growth.toFixed(1) + '%' : '—';
-            document.getElementById('growthRateChange').innerHTML = growth > 0 ? '&#9650; рост' : growth < 0 ? '&#9660; спад' : '';
+            document.getElementById('growthRate').textContent = growth ? growth.toFixed(1)+'%' : '—';
+            document.getElementById('growthRateChange').innerHTML = growth>0 ? '&#9650; рост' : growth<0 ? '&#9660; спад' : '';
         }
 
-        function updateMonthlyChart() {
-            const monthlyData = {};
-            allData.forEach(r => { const key = getMonthKey(r.date); if (!monthlyData[key]) monthlyData[key] = {credit:0,debit:0}; monthlyData[key].credit += r.credit; monthlyData[key].debit += r.debit; });
-            const keys = Object.keys(monthlyData).sort();
-            if (monthlyChartInstance) monthlyChartInstance.destroy();
-            monthlyChartInstance = new Chart(document.getElementById('monthlyChart').getContext('2d'), {
-                type: 'line',
-                data: { labels: keys.map(k => getMonthLabel(k)), datasets: [
-                    { label: 'Кредит', data: keys.map(k => monthlyData[k].credit), borderColor: '#4fc3f7', backgroundColor: 'rgba(79,195,247,0.1)', fill: true, tension: 0.4 },
-                    { label: 'Дебет', data: keys.map(k => monthlyData[k].debit), borderColor: '#ff7043', backgroundColor: 'rgba(255,112,67,0.1)', fill: true, tension: 0.4 }
-                ]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
-            });
-        }
-
+        // ==========================================
+        // PIE CHARTS WITH ARROWS
+        // ==========================================
         function updateCategoryChart() {
-            const creditCategoryData = {};
-            const debitCategoryData = {};
-            
+            const creditCat = {}, debitCat = {};
             allData.forEach(r => {
-                if (r.credit > 0) {
-                    if (!creditCategoryData[r.category]) creditCategoryData[r.category] = 0;
-                    creditCategoryData[r.category] += r.credit;
-                }
-                if (r.debit > 0) {
-                    if (!debitCategoryData[r.category]) debitCategoryData[r.category] = 0;
-                    debitCategoryData[r.category] += r.debit;
-                }
+                if(r.credit > 0) { if(!creditCat[r.category]) creditCat[r.category]=0; creditCat[r.category]+=r.credit; }
+                if(r.debit > 0) { if(!debitCat[r.category]) debitCat[r.category]=0; debitCat[r.category]+=r.debit; }
             });
 
-            function prepareData(data) {
-                const sorted = Object.entries(data).sort((a,b) => b[1]-a[1]);
+            function sortData(data) {
+                const sorted = Object.entries(data).sort((a,b)=>b[1]-a[1]);
                 return { labels: sorted.map(s=>s[0]), values: sorted.map(s=>s[1]) };
             }
 
-            const creditData = prepareData(creditCategoryData);
-            const debitData = prepareData(debitCategoryData);
+            const creditData = sortData(creditCat);
+            const debitData = sortData(debitCat);
+            const pieColors = ['#4fc3f7','#66bb6a','#ffa726','#ab47bc','#ef5350','#26c6da','#ec407a','#8d6e63','#d4e157','#78909c'];
 
-            const pieColors = ['#4fc3f7','#66bb6a','#ffa726','#ab47bc','#ef5350','#26c6da','#ec407a','#8d6e63','#d4e157','#5c6bc0'];
-
-            const pieOptions = {
+            const pieOpts = {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { top: 30, bottom: 10, left: 10, right: 10 } },
+                layout: { padding: { top: 40, bottom: 20, left: 20, right: 20 } },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + formatNumber(ctx.raw); } } },
+                    tooltip: { callbacks: { label: function(ctx) { return ctx.label+': '+formatNumber(ctx.raw); } } },
                     datalabels: {
                         color: '#333',
-                        font: { size: 10, weight: 'bold' },
+                        font: { size: 11, weight: '600' },
                         anchor: 'end',
                         align: 'end',
-                        offset: 8,
+                        offset: 10,
                         clamp: true,
                         clip: false,
                         formatter: function(value, ctx) {
                             const label = ctx.chart.data.labels[ctx.dataIndex];
-                            const total = ctx.chart.data.datasets[0].data.reduce((a,b) => a+b, 0);
-                            const pct = ((value / total) * 100).toFixed(1);
-                            return label + '\n' + formatNumber(value) + ' (' + pct + '%)';
+                            const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                            const pct = ((value/total)*100).toFixed(1);
+                            return label+'\n'+formatNumber(value)+' ('+pct+'%)';
                         },
-                        borderColor: function(ctx) {
-                            return ctx.dataset.backgroundColor[ctx.dataIndex];
-                        },
-                        borderWidth: 1,
+                        borderColor: function(ctx) { return ctx.dataset.backgroundColor[ctx.dataIndex]; },
+                        borderWidth: 1.5,
                         borderRadius: 4,
-                        backgroundColor: 'rgba(255,255,255,0.85)',
-                        padding: { top: 3, bottom: 3, left: 5, right: 5 }
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        padding: { top: 4, bottom: 4, left: 6, right: 6 }
                     }
                 }
             };
 
-            // Credit pie chart
-            if (categoryCreditChartInstance) categoryCreditChartInstance.destroy();
+            if(categoryCreditChartInstance) categoryCreditChartInstance.destroy();
             categoryCreditChartInstance = new Chart(document.getElementById('categoryCreditChart').getContext('2d'), {
                 type: 'pie',
-                data: {
-                    labels: creditData.labels,
-                    datasets: [{
-                        data: creditData.values,
-                        backgroundColor: pieColors.slice(0, creditData.labels.length),
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: pieOptions
+                data: { labels: creditData.labels, datasets: [{ data: creditData.values, backgroundColor: pieColors.slice(0, creditData.labels.length), borderWidth: 2, borderColor: '#fff' }] },
+                options: pieOpts
             });
 
-            // Debit pie chart
-            if (categoryDebitChartInstance) categoryDebitChartInstance.destroy();
+            if(categoryDebitChartInstance) categoryDebitChartInstance.destroy();
             categoryDebitChartInstance = new Chart(document.getElementById('categoryDebitChart').getContext('2d'), {
                 type: 'pie',
-                data: {
-                    labels: debitData.labels,
-                    datasets: [{
-                        data: debitData.values,
-                        backgroundColor: pieColors.slice(0, debitData.labels.length),
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: pieOptions
+                data: { labels: debitData.labels, datasets: [{ data: debitData.values, backgroundColor: pieColors.slice(0, debitData.labels.length), borderWidth: 2, borderColor: '#fff' }] },
+                options: pieOpts
             });
         }
 
-        function updateTopClients() {
-            // Top debit clients - using "Наименование кореспондента" (column D)
-            const debitByClient = {};
-            allData.forEach(r => { if (r.debit > 0 && r.client) { if (!debitByClient[r.client]) debitByClient[r.client] = 0; debitByClient[r.client] += r.debit; } });
-            const topDebit = Object.entries(debitByClient).sort((a,b) => b[1]-a[1]).slice(0,10);
-            document.querySelector('#topDebitTable tbody').innerHTML = topDebit.map(([client, sum]) => '<tr><td title="'+client+'">'+(client.length > 35 ? client.substring(0,35)+'...' : client)+'</td><td>'+formatNumber(sum)+'</td></tr>').join('');
+        // ==========================================
+        // MONTHLY CHART (full width below)
+        // ==========================================
+        function updateMonthlyChart() {
+            const monthlyData = {};
+            allData.forEach(r => { const k=getMonthKey(r.date); if(!monthlyData[k]) monthlyData[k]={credit:0,debit:0}; monthlyData[k].credit+=r.credit; monthlyData[k].debit+=r.debit; });
+            const keys = Object.keys(monthlyData).sort();
+            if(monthlyChartInstance) monthlyChartInstance.destroy();
+            monthlyChartInstance = new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+                type: 'line',
+                data: { labels: keys.map(k=>getMonthLabel(k)), datasets: [
+                    { label:'Кредит', data: keys.map(k=>monthlyData[k].credit), borderColor:'#4fc3f7', backgroundColor:'rgba(79,195,247,0.1)', fill:true, tension:0.4 },
+                    { label:'Дебет', data: keys.map(k=>monthlyData[k].debit), borderColor:'#ff7043', backgroundColor:'rgba(255,112,67,0.1)', fill:true, tension:0.4 }
+                ]},
+                options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'top'}, datalabels:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{ callback:function(v){return formatNumber(v);} } } } }
+            });
+        }
 
-            // Top credit clients - using "Наименование кореспондента" (column D)
+        // ==========================================
+        // TOP CLIENTS & YEARLY
+        // ==========================================
+        function updateTopClients() {
+            const debitByClient = {};
+            allData.forEach(r => { if(r.debit>0 && r.client) { if(!debitByClient[r.client]) debitByClient[r.client]=0; debitByClient[r.client]+=r.debit; } });
+            const topDebit = Object.entries(debitByClient).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            document.querySelector('#topDebitTable tbody').innerHTML = topDebit.map(([c,s])=>'<tr><td title="'+c+'">'+(c.length>35?c.substring(0,35)+'...':c)+'</td><td>'+formatNumber(s)+'</td></tr>').join('');
+
             const creditByClient = {};
-            allData.forEach(r => { if (r.credit > 0 && r.client) { if (!creditByClient[r.client]) creditByClient[r.client] = 0; creditByClient[r.client] += r.credit; } });
-            const topCredit = Object.entries(creditByClient).sort((a,b) => b[1]-a[1]).slice(0,10);
-            document.querySelector('#topCreditTable tbody').innerHTML = topCredit.map(([client, sum]) => '<tr><td title="'+client+'">'+(client.length > 35 ? client.substring(0,35)+'...' : client)+'</td><td>'+formatNumber(sum)+'</td></tr>').join('');
+            allData.forEach(r => { if(r.credit>0 && r.client) { if(!creditByClient[r.client]) creditByClient[r.client]=0; creditByClient[r.client]+=r.credit; } });
+            const topCredit = Object.entries(creditByClient).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            document.querySelector('#topCreditTable tbody').innerHTML = topCredit.map(([c,s])=>'<tr><td title="'+c+'">'+(c.length>35?c.substring(0,35)+'...':c)+'</td><td>'+formatNumber(s)+'</td></tr>').join('');
         }
 
         function updateYearlyChart() {
             const yearlyData = {};
-            allData.forEach(r => { const y = r.date.getFullYear(); if (!yearlyData[y]) yearlyData[y] = {credit:0,debit:0}; yearlyData[y].credit += r.credit; yearlyData[y].debit += r.debit; });
+            allData.forEach(r => { const y=r.date.getFullYear(); if(!yearlyData[y]) yearlyData[y]={credit:0,debit:0}; yearlyData[y].credit+=r.credit; yearlyData[y].debit+=r.debit; });
             const labels = Object.keys(yearlyData).sort();
-            if (yearlyChartInstance) yearlyChartInstance.destroy();
+            if(yearlyChartInstance) yearlyChartInstance.destroy();
             yearlyChartInstance = new Chart(document.getElementById('yearlyChart').getContext('2d'), {
                 type: 'bar',
                 data: { labels: labels, datasets: [
-                    { label: 'Кредит', data: labels.map(y => yearlyData[y].credit), backgroundColor: '#66bb6a', borderRadius: 4 },
-                    { label: 'Дебет', data: labels.map(y => yearlyData[y].debit), backgroundColor: '#ef5350', borderRadius: 4 }
+                    { label:'Кредит', data: labels.map(y=>yearlyData[y].credit), backgroundColor:'#66bb6a', borderRadius:4 },
+                    { label:'Дебет', data: labels.map(y=>yearlyData[y].debit), backgroundColor:'#ef5350', borderRadius:4 }
                 ]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
+                options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'top'}, datalabels:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{ callback:function(v){return formatNumber(v);} } } } }
             });
         }
 
-
-
+        // ==========================================
+        // OPERATIONS OVERVIEW
+        // ==========================================
         function updateOperationsTable() {
-            // Update summary stats
             document.getElementById('totalOps').textContent = allData.length.toLocaleString();
-            document.getElementById('totalCreditOps').textContent = allData.filter(r => r.credit > 0).length.toLocaleString();
-            document.getElementById('totalDebitOps').textContent = allData.filter(r => r.debit > 0).length.toLocaleString();
-            const uniqueClients = new Set(allData.map(r => r.client).filter(c => c));
+            document.getElementById('totalCreditOps').textContent = allData.filter(r=>r.credit>0).length.toLocaleString();
+            document.getElementById('totalDebitOps').textContent = allData.filter(r=>r.debit>0).length.toLocaleString();
+            const uniqueClients = new Set(allData.map(r=>r.client).filter(c=>c));
             document.getElementById('totalClients').textContent = uniqueClients.size.toLocaleString();
-            
-            // Don't show all operations - show hint instead
             document.getElementById('searchResults').style.display = 'none';
             document.getElementById('searchHint').style.display = 'block';
         }
 
         function getCategoryColor(category) {
-            const categories = ['Торговые выручки','Оплата за товар','Оплата по договору','Зарплата','Налоги и сборы','Аренда','Коммунальные','Оплата за услуги','Банковские расходы','Транспортные расходы','Страхование','Реклама','Возврат средств','Кредиты полученные','Проценты полученные','Зарплатные поступления','Дивиденды'];
-            const idx = categories.indexOf(category);
-            return categoryColors[idx >= 0 ? idx % categoryColors.length : Math.abs(category.split('').reduce((a,c) => a + c.charCodeAt(0), 0)) % categoryColors.length];
+            const cats = ['Торговые выручки','Оплата за товар и услуги','Возврат Фин займ','Пополнения уставного фонда','Уменьшения уставного фонда','Возврат Налог','Оплата Налог','Кредит погашения','Переброска','Прочее'];
+            const idx = cats.indexOf(category);
+            return categoryColors[idx>=0 ? idx%categoryColors.length : Math.abs(category.split('').reduce((a,c)=>a+c.charCodeAt(0),0))%categoryColors.length];
         }
 
         function filterOperations() {
@@ -581,38 +532,22 @@
             const hintDiv = document.getElementById('searchHint');
             const tbody = document.querySelector('#operationsTable tbody');
             
-            if (query.length < 2) {
-                resultsDiv.style.display = 'none';
-                hintDiv.style.display = 'block';
-                hintDiv.textContent = 'Введите запрос для поиска операций (минимум 2 символа)';
-                return;
-            }
+            if(query.length < 2) { resultsDiv.style.display='none'; hintDiv.style.display='block'; hintDiv.textContent='Введите запрос для поиска операций (минимум 2 символа)'; return; }
             
-            // Filter and show only matching results (max 50)
             const filtered = allData.filter(r => {
-                const text = (formatDate(r.date) + ' ' + r.client + ' ' + r.purpose + ' ' + r.category).toLowerCase();
+                const text = (formatDate(r.date)+' '+r.client+' '+r.purpose+' '+r.category).toLowerCase();
                 return text.includes(query);
             });
-            
             const limited = filtered.slice(0, 50);
             
-            if (limited.length === 0) {
-                resultsDiv.style.display = 'none';
-                hintDiv.style.display = 'block';
-                hintDiv.textContent = 'Ничего не найдено по запросу "' + query + '"';
-                return;
-            }
+            if(limited.length===0) { resultsDiv.style.display='none'; hintDiv.style.display='block'; hintDiv.textContent='Ничего не найдено по запросу "'+query+'"'; return; }
             
-            hintDiv.style.display = 'none';
-            resultsDiv.style.display = 'block';
-            
-            tbody.innerHTML = limited.map(r =>
-                '<tr><td>'+formatDate(r.date)+'</td><td title="'+r.client+'">'+(r.client.length > 40 ? r.client.substring(0,40)+'...' : r.client)+'</td><td title="'+r.purpose+'">'+(r.purpose.length > 50 ? r.purpose.substring(0,50)+'...' : r.purpose)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(r.category)+'20;color:'+getCategoryColor(r.category)+'">'+r.category+'</span></td><td>'+(r.credit ? formatNumber(r.credit) : '')+'</td><td>'+(r.debit ? formatNumber(r.debit) : '')+'</td></tr>'
+            hintDiv.style.display='none';
+            resultsDiv.style.display='block';
+            tbody.innerHTML = limited.map(r=>
+                '<tr><td>'+formatDate(r.date)+'</td><td title="'+r.client+'">'+(r.client.length>40?r.client.substring(0,40)+'...':r.client)+'</td><td title="'+r.purpose+'">'+(r.purpose.length>50?r.purpose.substring(0,50)+'...':r.purpose)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(r.category)+'20;color:'+getCategoryColor(r.category)+'">'+r.category+'</span></td><td>'+(r.credit?formatNumber(r.credit):'')+'</td><td>'+(r.debit?formatNumber(r.debit):'')+'</td></tr>'
             ).join('');
-            
-            if (filtered.length > 50) {
-                tbody.innerHTML += '<tr><td colspan="6" style="text-align:center; color:#999; padding:10px;">Показано 50 из ' + filtered.length + ' результатов. Уточните запрос.</td></tr>';
-            }
+            if(filtered.length>50) { tbody.innerHTML += '<tr><td colspan="6" style="text-align:center;color:#999;padding:10px;">Показано 50 из '+filtered.length+' результатов. Уточните запрос.</td></tr>'; }
         }
     </script>
 </body>
