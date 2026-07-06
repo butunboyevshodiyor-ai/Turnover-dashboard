@@ -290,45 +290,67 @@
             if (isCredit) {
                 // --- КРЕДИТ ---
                 // Торговые выручки
-                if (p.includes('00524') || p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци') || p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('реализац') || p.includes('выручк') || p.includes('savdo') || p.includes('tushum')) return 'Торговые выручки';
-                if (p.includes('оплата') || p.includes('tulov') || p.includes('shartnoma') || p.includes('договор')) return 'Торговые выручки';
+                if (p.includes('00524') || p.includes('00668') || p.includes('01007')) return 'Торговые выручки';
+                if (p.includes('smart vista')) return 'Торговые выручки';
+                if (p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци')) return 'Торговые выручки';
+                if (p.includes('shartnoma') || p.includes('шартнома') || p.includes('сонли шартнома') || p.includes('договор')) return 'Торговые выручки';
+                if (p.includes("to'lov") || p.includes('tolov') || p.includes('tulov')) return 'Торговые выручки';
+                if (p.includes('аванс') || p.includes('avans')) return 'Торговые выручки';
+                if (p.includes('оплата') || p.includes('оплат')) return 'Торговые выручки';
+                if (p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('реализац') || p.includes('выручк') || p.includes('savdo') || p.includes('tushum')) return 'Торговые выручки';
                 
                 // Возврат Фин займ
-                if (p.includes('фин займ') || p.includes('займ') || p.includes('фин. займ') || p.includes('финансовый займ') || p.includes('moliyaviy qarz') || p.includes('qarz qaytarish')) return 'Возврат Фин займ';
+                if (p.includes('фин займ') || p.includes('фин. займ') || p.includes('финансовый займ') || p.includes('займ')) return 'Возврат Фин займ';
+                if (p.includes('молиявий') || p.includes('молиявий ёрдам') || p.includes('moliyaviy')) return 'Возврат Фин займ';
                 
                 // Пополнения уставного фонда
-                if (p.includes('устав') || p.includes('пополнени') || p.includes('попольнени') || p.includes('уставн') || p.includes('00624') || p.includes('ustav') || p.includes('nizom fondi')) return 'Пополнения уставного фонда';
+                if (p.includes('00624')) return 'Пополнения уставного фонда';
+                if (p.includes('устав') || p.includes('пополнени') || p.includes('попольнени') || p.includes('уставн') || p.includes('ustav') || p.includes('nizom fondi')) return 'Пополнения уставного фонда';
                 
                 // Возврат Налог
-                if (p.includes('возврат') && (p.includes('ндс') || p.includes('налог') || p.includes('гнк'))) return 'Возврат Налог';
-                if (p.includes('возврат ндс') || p.includes('гнк') || p.includes('согласно заключени')) return 'Возврат Налог';
-                if (p.includes('возврат') && p.includes('soliq')) return 'Возврат Налог';
+                if (p.includes('возврат') && (p.includes('ндс') || p.includes('налог') || p.includes('гнк') || p.includes('soliq'))) return 'Возврат Налог';
+                if (p.includes('гнк')) return 'Возврат Налог';
+                if (p.includes('согласно заключени') || p.includes('согласно закл')) return 'Возврат Налог';
                 
                 // Переброска
-                if (p.includes('иккиламчи') || p.includes('асосий') || p.includes('ҳисобрақам') || p.includes('ўтказма') || p.includes('переброск') || p.includes('перевод между счет')) return 'Переброска';
+                if (p.includes('иккиламчи') || p.includes('асосий') || p.includes('ҳисобрақам') || p.includes('хисобракам')) return 'Переброска';
+                if (p.includes('ўтказма') || p.includes('утказма') || p.includes("o'tkazma")) return 'Переброска';
+                if (p.includes('перевод') || p.includes('денежных средств') || p.includes('денежных срдеств')) return 'Переброска';
+                if (p.includes('вторичн')) return 'Переброска';
                 
                 return 'Прочее';
             } else {
                 // --- ДЕБЕТ ---
                 // Оплата за товар и услуги
-                if (p.includes('00524') || p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци') || p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('поставк') || p.includes('материал') || p.includes('закупк') || p.includes('сырье')) return 'Оплата за товар и услуги';
-                if (p.includes('оплата') || p.includes('tulov') || p.includes('shartnoma') || p.includes('договор') || p.includes('услуг') || p.includes('xizmat')) return 'Оплата за товар и услуги';
+                if (p.includes('00524') || p.includes('00668') || p.includes('01007')) return 'Оплата за товар и услуги';
+                if (p.includes('smart vista')) return 'Оплата за товар и услуги';
+                if (p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци')) return 'Оплата за товар и услуги';
+                if (p.includes('shartnoma') || p.includes('шартнома') || p.includes('сонли шартнома') || p.includes('договор')) return 'Оплата за товар и услуги';
+                if (p.includes("to'lov") || p.includes('tolov') || p.includes('tulov')) return 'Оплата за товар и услуги';
+                if (p.includes('аванс') || p.includes('avans')) return 'Оплата за товар и услуги';
+                if (p.includes('оплата') || p.includes('оплат')) return 'Оплата за товар и услуги';
+                if (p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('поставк') || p.includes('материал') || p.includes('закупк') || p.includes('услуг') || p.includes('xizmat')) return 'Оплата за товар и услуги';
                 
                 // Возврат Фин займ
-                if (p.includes('фин займ') || p.includes('займ') || p.includes('фин. займ') || p.includes('финансовый займ') || p.includes('moliyaviy qarz') || p.includes('qarz')) return 'Возврат Фин займ';
+                if (p.includes('фин займ') || p.includes('фин. займ') || p.includes('финансовый займ') || p.includes('займ')) return 'Возврат Фин займ';
+                if (p.includes('молиявий') || p.includes('молиявий ёрдам') || p.includes('moliyaviy')) return 'Возврат Фин займ';
+                
+                // Переброска (check before Устав to catch transfers)
+                if (p.includes('иккиламчи') || p.includes('асосий') || p.includes('ҳисобрақам') || p.includes('хисобракам')) return 'Переброска';
+                if (p.includes('ўтказма') || p.includes('утказма') || p.includes("o'tkazma")) return 'Переброска';
+                if (p.includes('перевод') || p.includes('денежных средств') || p.includes('денежных срдеств')) return 'Переброска';
+                if (p.includes('вторичн')) return 'Переброска';
                 
                 // Уменьшения уставного фонда
-                if (p.includes('устав') || p.includes('уменьшени') || p.includes('попольнени') || p.includes('уставн') || p.includes('00624') || p.includes('ustav') || p.includes('nizom fondi')) return 'Уменьшения уставного фонда';
+                if (p.includes('00624')) return 'Уменьшения уставного фонда';
+                if (p.includes('устав') || p.includes('пополнени') || p.includes('попольнени') || p.includes('уставн') || p.includes('ustav') || p.includes('nizom fondi')) return 'Уменьшения уставного фонда';
                 
                 // Оплата Налог
-                if (p.includes('ндс') || p.includes('гнк') || p.includes('налог') || p.includes('soliq') || p.includes('qqs') || p.includes('бюджет') || p.includes('byudjet') || p.includes('ндфл')) return 'Оплата Налог';
-                if (p.includes('согласно заключени') && p.includes('ндс')) return 'Оплата Налог';
+                if (p.includes('ндс') || p.includes('гнк') || p.includes('налог') || p.includes('soliq') || p.includes('ққс') || p.includes('qqs') || p.includes('бюджет') || p.includes('byudjet') || p.includes('ндфл')) return 'Оплата Налог';
                 
                 // Кредит погашения
-                if (p.includes('кредит') || p.includes('kredit') || p.includes('погашени') || p.includes('основного долга') || p.includes('процент') || p.includes('пени') || p.includes('тўлови') || p.includes('foiz') || p.includes('asosiy qarz')) return 'Кредит погашения';
-                
-                // Переброска
-                if (p.includes('иккиламчи') || p.includes('асосий') || p.includes('ҳисобрақам') || p.includes('ўтказма') || p.includes('переброск') || p.includes('перевод между счет')) return 'Переброска';
+                if (p.includes('кред') && p.includes('пога')) return 'Кредит погашения';
+                if (p.includes('кредит') || p.includes('kredit') || p.includes('погашени') || p.includes('основного долга') || p.includes('asosiy qarz') || p.includes('foiz') || p.includes('пеня') || p.includes('пени')) return 'Кредит погашения';
                 
                 return 'Прочее';
             }
@@ -396,7 +418,7 @@
         }
 
         // ==========================================
-        // HORIZONTAL BAR CHARTS (Pro Design)
+        // VERTICAL BAR CHARTS (Pro Design)
         // ==========================================
         function updateCategoryChart() {
             const creditCat = {}, debitCat = {};
@@ -413,15 +435,14 @@
             const creditData = sortData(creditCat);
             const debitData = sortData(debitCat);
 
-            // Professional gradient-style colors
             const creditColors = ['#0288d1','#03a9f4','#4fc3f7','#81d4fa','#b3e5fc','#e1f5fe','#a7c7e7','#5dade2'];
             const debitColors = ['#d32f2f','#f44336','#ef5350','#e57373','#ef9a9a','#ffcdd2','#ff8a65','#ffab91'];
 
-            const barOptions = (colors) => ({
-                indexAxis: 'y',
+            const barOptions = {
+                indexAxis: 'x',
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { right: 80 } },
+                layout: { padding: { top: 30 } },
                 plugins: {
                     legend: { display: false },
                     tooltip: { 
@@ -440,29 +461,29 @@
                     },
                     datalabels: {
                         anchor: 'end',
-                        align: 'right',
-                        offset: 6,
+                        align: 'top',
+                        offset: 4,
                         color: '#555',
-                        font: { size: 11, weight: '600' },
+                        font: { size: 10, weight: '600' },
                         formatter: function(value, ctx) {
                             const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
                             const pct = ((value/total)*100).toFixed(1);
-                            return formatNumber(value) + ' (' + pct + '%)';
+                            return formatNumber(value) + '\n(' + pct + '%)';
                         }
                     }
                 },
                 scales: {
-                    x: {
+                    y: {
                         beginAtZero: true,
                         grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
                         ticks: { callback: function(v) { return formatNumber(v); }, font: { size: 10 }, color: '#999' }
                     },
-                    y: {
+                    x: {
                         grid: { display: false },
-                        ticks: { font: { size: 12, weight: '500' }, color: '#333', padding: 8 }
+                        ticks: { font: { size: 10, weight: '500' }, color: '#333', maxRotation: 25, minRotation: 0 }
                     }
                 }
-            });
+            };
 
             if(categoryCreditChartInstance) categoryCreditChartInstance.destroy();
             categoryCreditChartInstance = new Chart(document.getElementById('categoryCreditChart').getContext('2d'), {
@@ -474,10 +495,10 @@
                         backgroundColor: creditColors.slice(0, creditData.labels.length),
                         borderRadius: 6,
                         borderSkipped: false,
-                        barThickness: 28
+                        maxBarThickness: 50
                     }] 
                 },
-                options: barOptions(creditColors)
+                options: barOptions
             });
 
             if(categoryDebitChartInstance) categoryDebitChartInstance.destroy();
@@ -490,10 +511,10 @@
                         backgroundColor: debitColors.slice(0, debitData.labels.length),
                         borderRadius: 6,
                         borderSkipped: false,
-                        barThickness: 28
+                        maxBarThickness: 50
                     }] 
                 },
-                options: barOptions(debitColors)
+                options: barOptions
             });
         }
 
