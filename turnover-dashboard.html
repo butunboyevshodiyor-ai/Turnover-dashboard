@@ -133,22 +133,6 @@
             <div class="table-card"><h3>&#11014; Топ клиенты по кредиту</h3><table class="data-table" id="topCreditTable"><thead><tr><th>Клиент</th><th>Назначение</th><th>Сумма</th></tr></thead><tbody></tbody></table></div>
         </div>
 
-        <!-- Year Comparison: Credit vs Credit, Debit vs Debit -->
-        <div class="pie-row" id="yearCompareSection" style="display:none;">
-            <div class="chart-card">
-                <h3 style="color:#1565c0;">&#128200; Кредит — сравнение по годам</h3>
-                <div style="position:relative; height: 300px;">
-                    <canvas id="yearCreditCompareChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h3 style="color:#c62828;">&#128200; Дебет — сравнение по годам</h3>
-                <div style="position:relative; height: 300px;">
-                    <canvas id="yearDebitCompareChart"></canvas>
-                </div>
-            </div>
-        </div>
-
         <!-- Brief Overview with Search -->
         <div class="operations-section" id="operationsSection" style="display:none;">
             <h3>&#128269; Краткий обзор операций</h3>
@@ -326,7 +310,6 @@
             document.getElementById('pieSection').style.display = '';
             document.getElementById('monthlySection').style.display = '';
             document.getElementById('tablesSection').style.display = '';
-            document.getElementById('yearCompareSection').style.display = '';
             document.getElementById('operationsSection').style.display = '';
             document.getElementById('pdfBtn').style.display = 'inline-block';
 
@@ -338,7 +321,6 @@
             updateCategoryChart();
             updateMonthlyChart();
             updateTopClients();
-            updateYearComparison();
             updateOperationsTable();
         }
 
@@ -657,76 +639,6 @@
             document.querySelector('#topCreditTable tbody').innerHTML = topCredit.map(([c,data])=>{
                 return '<tr><td title="'+c+'">'+(c.length>28?c.substring(0,28)+'...':c)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(data.category)+'20;color:'+getCategoryColor(data.category)+'">'+data.category+'</span></td><td><strong>'+formatNumber(data.sum)+'</strong></td></tr>';
             }).join('');
-        }
-
-        // ==========================================
-        // YEAR COMPARISON: Credit vs Credit, Debit vs Debit
-        // ==========================================
-        let yearCreditCompareInstance = null;
-        let yearDebitCompareInstance = null;
-        function updateYearComparison() {
-            const yearMonthlyCredit = {};
-            const yearMonthlyDebit = {};
-            allData.forEach(r => {
-                const y = r.date.getFullYear();
-                const m = r.date.getMonth();
-                if(!yearMonthlyCredit[y]) yearMonthlyCredit[y] = Array(12).fill(0);
-                if(!yearMonthlyDebit[y]) yearMonthlyDebit[y] = Array(12).fill(0);
-                yearMonthlyCredit[y][m] += r.credit;
-                yearMonthlyDebit[y][m] += r.debit;
-            });
-
-            const years = Object.keys(yearMonthlyCredit).sort();
-            const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-            const yearColors = ['#1565c0','#e53935','#2e7d32','#f57c00','#6a1b9a'];
-
-            // Credit comparison by year
-            if(yearCreditCompareInstance) yearCreditCompareInstance.destroy();
-            const creditDatasets = years.map((y, idx) => ({
-                label: 'Кредит ' + y,
-                data: yearMonthlyCredit[y],
-                borderColor: yearColors[idx % yearColors.length],
-                backgroundColor: yearColors[idx % yearColors.length] + '20',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3,
-                pointRadius: 4,
-                pointHoverRadius: 7
-            }));
-            yearCreditCompareInstance = new Chart(document.getElementById('yearCreditCompareChart').getContext('2d'), {
-                type: 'line',
-                data: { labels: months, datasets: creditDatasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top' }, datalabels: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } }
-                }
-            });
-
-            // Debit comparison by year
-            if(yearDebitCompareInstance) yearDebitCompareInstance.destroy();
-            const debitDatasets = years.map((y, idx) => ({
-                label: 'Дебет ' + y,
-                data: yearMonthlyDebit[y],
-                borderColor: yearColors[idx % yearColors.length],
-                backgroundColor: yearColors[idx % yearColors.length] + '20',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3,
-                pointRadius: 4,
-                pointHoverRadius: 7
-            }));
-            yearDebitCompareInstance = new Chart(document.getElementById('yearDebitCompareChart').getContext('2d'), {
-                type: 'line',
-                data: { labels: months, datasets: debitDatasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top' }, datalabels: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } }
-                }
-            });
         }
 
         // ==========================================
