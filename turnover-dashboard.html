@@ -222,6 +222,25 @@
         function processRawData(rawData) {
             let headerRowIdx = -1;
             let colMap = {};
+            let ourClientName = '';
+            
+            // First scan: find our client name from metadata rows
+            for (let i = 0; i < Math.min(rawData.length, 20); i++) {
+                const row = rawData[i];
+                if (!row) continue;
+                for (let j = 0; j < row.length; j++) {
+                    const cell = String(row[j] || '').trim();
+                    // Look for "Наименование клиента" column header or client name pattern
+                    if (cell.toLowerCase().includes('наименование клиента')) {
+                        // The client name might be in next column or next row
+                        if (j+1 < row.length && row[j+1]) ourClientName = String(row[j+1]).trim();
+                    }
+                    // Also check for patterns like 'ООО "..."' or account holder info
+                    if (cell.match(/^(ООО|OOO|МЧЖ|MCHJ|АО|ЧП|ИП)\s*["«]?.+["»]?$/i) && !ourClientName) {
+                        ourClientName = cell;
+                    }
+                }
+            }
             
             for (let i = 0; i < Math.min(rawData.length, 20); i++) {
                 const row = rawData[i];
@@ -239,7 +258,27 @@
                 if ((foundDebit >= 0 || foundCredit >= 0) && foundDate >= 0) {
                     headerRowIdx = i;
                     colMap = { debit: foundDebit, credit: foundCredit, date: foundDate, client: foundClient, purpose: foundPurpose };
+                    // Also try to get our client name from "Наименование клиента" column (index 1 usually)
                     break;
+                }
+            }
+            
+            // If we didn't find client name from metadata, try from the first data row's "Наименование клиента" column
+            if (!ourClientName && headerRowIdx >= 0) {
+                // Check header row for "наименование клиента" column
+                const hRow = rawData[headerRowIdx];
+                for (let j = 0; j < hRow.length; j++) {
+                    if (String(hRow[j] || '').toLowerCase().includes('наименование клиента')) {
+                        // Get value from first data row
+                        if (headerRowIdx + 2 < rawData.length) {
+                            const firstDataRow = rawData[headerRowIdx + 2]; // skip sub-header
+                            if (firstDataRow && firstDataRow[j]) ourClientName = String(firstDataRow[j]).trim();
+                        }
+                        if (!ourClientName && headerRowIdx + 1 < rawData.length) {
+                            const firstDataRow = rawData[headerRowIdx + 1];
+                            if (firstDataRow && firstDataRow[j]) ourClientName = String(firstDataRow[j]).trim();
+                        }
+                    }
                 }
             }
             
@@ -270,7 +309,7 @@
                 if (debit === 0 && credit === 0) continue;
                 
                 const isCredit = credit > 0;
-                const category = categorizePayment(purposeVal, isCredit);
+                const category = categorizePayment(purposeVal, isCredit, clientVal, ourClientName);
                 allData.push({ date, credit, debit, client: clientVal, purpose: purposeVal, category });
             }
 
@@ -307,13 +346,27 @@
         // ==========================================
         // CATEGORIZATION LOGIC
         // ==========================================
-        function categorizePayment(purpose, isCredit) {
+        function categorizePayment(purpose, isCredit, clientName, ourClientName) {
             const p = (purpose || '').toLowerCase();
+            const client = (clientName || '').toLowerCase();
+            const ourClient = (ourClientName || '').toLowerCase();
+            
+            // === 01007 SPECIAL LOGIC ===
+            // If 01007 and from same client (our company) = Овердрафт
+            // If 01007 and from other clients = Торговые выручки / Оплата за товар
+            if (p.includes('01007')) {
+                const isSameClient = ourClient && client && (client.includes(ourClient) || ourClient.includes(client) || client === ourClient);
+                if (isSameClient) {
+                    return 'Овердрафт';
+                } else {
+                    return isCredit ? 'Торговые выручки' : 'Оплата за товар и услуги';
+                }
+            }
             
             if (isCredit) {
                 // --- КРЕДИТ ---
                 // Торговые выручки
-                if (p.includes('00524') || p.includes('00668') || p.includes('01007')) return 'Торговые выручки';
+                if (p.includes('00524') || p.includes('00668')) return 'Торговые выручки';
                 if (p.includes('smart vista')) return 'Торговые выручки';
                 if (p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци')) return 'Торговые выручки';
                 if (p.includes('shartnoma') || p.includes('шартнома') || p.includes('сонли шартнома') || p.includes('договор')) return 'Торговые выручки';
@@ -345,7 +398,7 @@
             } else {
                 // --- ДЕБЕТ ---
                 // Оплата за товар и услуги
-                if (p.includes('00524') || p.includes('00668') || p.includes('01007')) return 'Оплата за товар и услуги';
+                if (p.includes('00524') || p.includes('00668')) return 'Оплата за товар и услуги';
                 if (p.includes('smart vista')) return 'Оплата за товар и услуги';
                 if (p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци')) return 'Оплата за товар и услуги';
                 if (p.includes('shartnoma') || p.includes('шартнома') || p.includes('сонли шартнома') || p.includes('договор')) return 'Оплата за товар и услуги';
@@ -575,36 +628,35 @@
         // TOP CLIENTS & YEARLY
         // ==========================================
         function updateTopClients() {
-            // Top debit clients with payment purpose
+            // Top debit clients with SHORT category name
             const debitByClient = {};
             allData.forEach(r => { 
                 if(r.debit>0 && r.client) { 
                     const key = r.client;
-                    if(!debitByClient[key]) debitByClient[key] = { sum: 0, purpose: '' };
+                    if(!debitByClient[key]) debitByClient[key] = { sum: 0, category: r.category };
                     debitByClient[key].sum += r.debit;
-                    if(!debitByClient[key].purpose || r.debit > 0) debitByClient[key].purpose = r.purpose;
+                    // Keep the dominant category (most frequent)
+                    if(r.debit > debitByClient[key].sum / 2) debitByClient[key].category = r.category;
                 } 
             });
             const topDebit = Object.entries(debitByClient).sort((a,b)=>b[1].sum-a[1].sum).slice(0,10);
             document.querySelector('#topDebitTable tbody').innerHTML = topDebit.map(([c,data])=>{
-                const purpose = data.purpose.length > 25 ? data.purpose.substring(0,25)+'...' : data.purpose;
-                return '<tr><td title="'+c+'">'+(c.length>30?c.substring(0,30)+'...':c)+'</td><td title="'+data.purpose+'" style="font-size:11px;color:#666;">'+purpose+'</td><td>'+formatNumber(data.sum)+'</td></tr>';
+                return '<tr><td title="'+c+'">'+(c.length>28?c.substring(0,28)+'...':c)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(data.category)+'20;color:'+getCategoryColor(data.category)+'">'+data.category+'</span></td><td><strong>'+formatNumber(data.sum)+'</strong></td></tr>';
             }).join('');
 
-            // Top credit clients with payment purpose
+            // Top credit clients with SHORT category name
             const creditByClient = {};
             allData.forEach(r => { 
                 if(r.credit>0 && r.client) { 
                     const key = r.client;
-                    if(!creditByClient[key]) creditByClient[key] = { sum: 0, purpose: '' };
+                    if(!creditByClient[key]) creditByClient[key] = { sum: 0, category: r.category };
                     creditByClient[key].sum += r.credit;
-                    if(!creditByClient[key].purpose || r.credit > 0) creditByClient[key].purpose = r.purpose;
+                    if(r.credit > creditByClient[key].sum / 2) creditByClient[key].category = r.category;
                 } 
             });
             const topCredit = Object.entries(creditByClient).sort((a,b)=>b[1].sum-a[1].sum).slice(0,10);
             document.querySelector('#topCreditTable tbody').innerHTML = topCredit.map(([c,data])=>{
-                const purpose = data.purpose.length > 25 ? data.purpose.substring(0,25)+'...' : data.purpose;
-                return '<tr><td title="'+c+'">'+(c.length>30?c.substring(0,30)+'...':c)+'</td><td title="'+data.purpose+'" style="font-size:11px;color:#666;">'+purpose+'</td><td>'+formatNumber(data.sum)+'</td></tr>';
+                return '<tr><td title="'+c+'">'+(c.length>28?c.substring(0,28)+'...':c)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(data.category)+'20;color:'+getCategoryColor(data.category)+'">'+data.category+'</span></td><td><strong>'+formatNumber(data.sum)+'</strong></td></tr>';
             }).join('');
         }
 
@@ -737,7 +789,7 @@
         }
 
         function getCategoryColor(category) {
-            const cats = ['Торговые выручки','Оплата за товар и услуги','Возврат Фин займ','Пополнения уставного фонда','Уменьшения уставного фонда','Возврат Налог','Оплата Налог','Кредит погашения','Переброска','Прочее'];
+            const cats = ['Торговые выручки','Оплата за товар и услуги','Возврат Фин займ','Пополнения уставного фонда','Уменьшения уставного фонда','Возврат Налог','Оплата Налог','Кредит погашения','Переброска','Овердрафт','Прочее'];
             const idx = cats.indexOf(category);
             return categoryColors[idx>=0 ? idx%categoryColors.length : Math.abs(category.split('').reduce((a,c)=>a+c.charCodeAt(0),0))%categoryColors.length];
         }
