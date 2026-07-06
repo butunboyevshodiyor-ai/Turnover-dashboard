@@ -7,335 +7,57 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 250px;
-            background: #1a1a2e;
-            color: #fff;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-header {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid #333;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .sidebar-nav {
-            list-style: none;
-            padding: 20px 0;
-        }
-
-        .sidebar-nav li {
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: background 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-nav li:hover,
-        .sidebar-nav li.active {
-            background: #16213e;
-            border-left: 3px solid #4fc3f7;
-        }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 20px;
-            padding: 0 20px;
-            font-size: 12px;
-            color: #888;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 250px;
-            flex: 1;
-            padding: 30px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .header-title h1 {
-            font-size: 24px;
-            color: #1a1a2e;
-        }
-
-        .header-title p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .upload-section {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .upload-btn {
-            background: #4fc3f7;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-
-        .upload-btn:hover {
-            background: #039be5;
-        }
-
-        .file-name {
-            font-size: 12px;
-            color: #888;
-        }
-
-        /* Info Box */
-        .info-box {
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .info-box-icon {
-            font-size: 32px;
-        }
-
-        .info-box p {
-            color: #1565c0;
-            font-size: 14px;
-        }
-
-        /* KPI Cards */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .kpi-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .kpi-card h3 {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 8px;
-        }
-
-        .kpi-card .value {
-            font-size: 22px;
-            font-weight: bold;
-            color: #1a1a2e;
-        }
-
-        .kpi-card .change {
-            font-size: 12px;
-            color: #4caf50;
-        }
-
-        .kpi-card .icon {
-            font-size: 36px;
-        }
-
-        /* Charts Grid */
-        .charts-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .chart-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-
-        .chart-card h3 {
-            font-size: 16px;
-            color: #1a1a2e;
-            margin-bottom: 15px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-
-        /* Tables Grid */
-        .tables-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .table-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-
-        .table-card h3 {
-            font-size: 16px;
-            color: #1a1a2e;
-            margin-bottom: 15px;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 8px 10px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        .data-table th {
-            color: #888;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-
-        .data-table td {
-            color: #333;
-        }
-
-        /* All Operations */
-        .operations-section {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
-
-        .operations-section h3 {
-            font-size: 16px;
-            color: #1a1a2e;
-            margin-bottom: 15px;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        .operations-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .operations-table th,
-        .operations-table td {
-            padding: 10px 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        .operations-table th {
-            background: #f8f9fa;
-            color: #666;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-
-        .operations-table tr:hover {
-            background: #f8f9fa;
-        }
-
-        .category-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        /* Hidden file input */
-        #fileInput {
-            display: none;
-        }
-
-        @media (max-width: 1200px) {
-            .tables-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
-            .kpi-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: #1a1a2e; color: #fff; padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; }
+        .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid #333; font-size: 18px; font-weight: bold; }
+        .sidebar-nav { list-style: none; padding: 20px 0; }
+        .sidebar-nav li { padding: 12px 20px; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 10px; }
+        .sidebar-nav li:hover, .sidebar-nav li.active { background: #16213e; border-left: 3px solid #4fc3f7; }
+        .sidebar-footer { position: absolute; bottom: 20px; padding: 0 20px; font-size: 12px; color: #888; }
+        .main-content { margin-left: 250px; flex: 1; padding: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        .header-title h1 { font-size: 24px; color: #1a1a2e; }
+        .header-title p { color: #666; font-size: 14px; }
+        .upload-section { display: flex; align-items: center; gap: 10px; }
+        .upload-btn { background: #4fc3f7; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+        .upload-btn:hover { background: #039be5; }
+        .file-name { font-size: 12px; color: #888; }
+        .info-box { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 10px; padding: 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
+        .info-box-icon { font-size: 32px; }
+        .info-box p { color: #1565c0; font-size: 14px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .kpi-card h3 { font-size: 13px; color: #888; margin-bottom: 8px; }
+        .kpi-card .value { font-size: 22px; font-weight: bold; color: #1a1a2e; }
+        .kpi-card .change { font-size: 12px; color: #4caf50; }
+        .kpi-card .icon { font-size: 36px; }
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .chart-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .chart-card h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 15px; }
+        .chart-container { position: relative; height: 300px; }
+        .tables-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .table-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .table-card h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 15px; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .data-table th, .data-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
+        .data-table th { color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+        .data-table td { color: #333; }
+        .operations-section { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 30px; }
+        .operations-section h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 15px; }
+        .search-box { width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 15px; }
+        .operations-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .operations-table th, .operations-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+        .operations-table th { background: #f8f9fa; color: #666; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+        .operations-table tr:hover { background: #f8f9fa; }
+        .category-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+        #fileInput { display: none; }
+        .debug-box { background: #fff3e0; border: 1px solid #ffcc80; border-radius: 10px; padding: 15px; margin-bottom: 20px; font-size: 13px; color: #e65100; display: none; }
+        @media (max-width: 1200px) { .tables-row { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; } .charts-row { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
     </style>
 </head>
 <body>
-
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">&#127970; CLIENT OVERVIEW</div>
         <ul class="sidebar-nav">
@@ -344,14 +66,11 @@
             <li>Trend Analysis</li>
             <li>Customer Analysis</li>
             <li>Geography Analysis</li>
-            <li>Reports & Export</li>
+            <li>Reports &amp; Export</li>
         </ul>
         <div class="sidebar-footer">Data as of <span id="dataDate">&mdash;</span></div>
     </aside>
-
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Header -->
         <div class="header">
             <div class="header-title">
                 <h1>ANNUAL TURNOVER DASHBOARD</h1>
@@ -363,182 +82,164 @@
                 <span class="file-name" id="fileName">Файл не выбран</span>
             </div>
         </div>
-
-        <!-- Info Box -->
         <div class="info-box" id="infoBox">
             <span class="info-box-icon">&#128202;</span>
-            <p>Загрузите файл Excel с колонками &laquo;Сумма кредита&raquo;, &laquo;Сумма дебита&raquo;, &laquo;Наименование кореспондента&raquo;, &laquo;Назначение платежа&raquo;, &laquo;Дата&raquo;, чтобы построить панель.</p>
+            <p>Загрузите файл Excel с банковской выпиской (формат Garant Bank / IABS). Система автоматически найдёт колонки: Наименование кореспондента, Сумма дебита, Сумма кредита, Дата, Назначение платежа.</p>
         </div>
-
-        <!-- KPI Cards -->
+        <div class="debug-box" id="debugBox"></div>
         <div class="kpi-grid" id="kpiSection" style="display:none;">
-            <div class="kpi-card">
-                <div>
-                    <h3>Итого оборот (кредит)</h3>
-                    <div class="value" id="totalCredit">&mdash;</div>
-                    <div class="change" id="totalCreditChange"></div>
-                </div>
-                <span class="icon">&#128176;</span>
-            </div>
-            <div class="kpi-card">
-                <div>
-                    <h3>Средний оборот в месяц</h3>
-                    <div class="value" id="avgMonthly">&mdash;</div>
-                    <div class="change" id="avgMonthlyChange"></div>
-                </div>
-                <span class="icon">&#128200;</span>
-            </div>
-            <div class="kpi-card">
-                <div>
-                    <h3>Лучший месяц</h3>
-                    <div class="value" id="bestMonth">&mdash;</div>
-                    <div class="change" id="bestMonthChange"></div>
-                </div>
-                <span class="icon">&#127942;</span>
-            </div>
-            <div class="kpi-card">
-                <div>
-                    <h3>Темп роста (YoY)</h3>
-                    <div class="value" id="growthRate">&mdash;</div>
-                    <div class="change" id="growthRateChange"></div>
-                </div>
-                <span class="icon">&#128201;</span>
-            </div>
+            <div class="kpi-card"><div><h3>Итого оборот (кредит)</h3><div class="value" id="totalCredit">&mdash;</div><div class="change" id="totalCreditChange"></div></div><span class="icon">&#128176;</span></div>
+            <div class="kpi-card"><div><h3>Средний оборот в месяц</h3><div class="value" id="avgMonthly">&mdash;</div><div class="change" id="avgMonthlyChange"></div></div><span class="icon">&#128200;</span></div>
+            <div class="kpi-card"><div><h3>Лучший месяц</h3><div class="value" id="bestMonth">&mdash;</div><div class="change" id="bestMonthChange"></div></div><span class="icon">&#127942;</span></div>
+            <div class="kpi-card"><div><h3>Темп роста (YoY)</h3><div class="value" id="growthRate">&mdash;</div><div class="change" id="growthRateChange"></div></div><span class="icon">&#128201;</span></div>
         </div>
-
-        <!-- Charts Row -->
         <div class="charts-row" id="chartsSection" style="display:none;">
-            <div class="chart-card">
-                <h3>Динамика оборота по месяцам</h3>
-                <div class="chart-container">
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h3>Оборот по категориям</h3>
-                <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
+            <div class="chart-card"><h3>Динамика оборота по месяцам</h3><div class="chart-container"><canvas id="monthlyChart"></canvas></div></div>
+            <div class="chart-card"><h3>Оборот по категориям</h3><div class="chart-container"><canvas id="categoryChart"></canvas></div></div>
         </div>
-
-        <!-- Tables Row -->
         <div class="tables-row" id="tablesSection" style="display:none;">
-            <div class="table-card">
-                <h3>&#11015; Топ клиенты по дебету</h3>
-                <table class="data-table" id="topDebitTable">
-                    <thead>
-                        <tr><th>Клиент</th><th>Сумма</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div class="table-card">
-                <h3>&#11014; Топ клиенты по кредиту</h3>
-                <table class="data-table" id="topCreditTable">
-                    <thead>
-                        <tr><th>Клиент</th><th>Сумма</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div class="table-card">
-                <h3>Оборот по годам</h3>
-                <div class="chart-container" style="height:250px;">
-                    <canvas id="yearlyChart"></canvas>
-                </div>
-            </div>
+            <div class="table-card"><h3>&#11015; Топ клиенты по дебету</h3><table class="data-table" id="topDebitTable"><thead><tr><th>Клиент</th><th>Сумма</th></tr></thead><tbody></tbody></table></div>
+            <div class="table-card"><h3>&#11014; Топ клиенты по кредиту</h3><table class="data-table" id="topCreditTable"><thead><tr><th>Клиент</th><th>Сумма</th></tr></thead><tbody></tbody></table></div>
+            <div class="table-card"><h3>Оборот по годам</h3><div class="chart-container" style="height:250px;"><canvas id="yearlyChart"></canvas></div></div>
         </div>
-
-        <!-- All Operations -->
         <div class="operations-section" id="operationsSection" style="display:none;">
             <h3>Все операции</h3>
             <input type="text" class="search-box" id="searchBox" placeholder="Поиск по операциям..." oninput="filterOperations()">
             <div style="overflow-x:auto;">
                 <table class="operations-table" id="operationsTable">
-                    <thead>
-                        <tr>
-                            <th>Дата</th>
-                            <th>Наименование кореспондента</th>
-                            <th>Назначение платежа</th>
-                            <th>Категория</th>
-                            <th>Сумма кредита</th>
-                            <th>Сумма дебита</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Дата</th><th>Наименование кореспондента</th><th>Назначение платежа</th><th>Категория</th><th>Сумма кредита</th><th>Сумма дебита</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
     </div>
-
     <script>
         let allData = [];
         let monthlyChartInstance = null;
         let categoryChartInstance = null;
         let yearlyChartInstance = null;
-
-        // Category colors
-        const categoryColors = [
-            '#4fc3f7', '#ff7043', '#66bb6a', '#ab47bc', '#ffa726',
-            '#26c6da', '#ec407a', '#8d6e63', '#78909c', '#d4e157',
-            '#5c6bc0', '#29b6f6', '#ef5350', '#9ccc65', '#ffca28'
-        ];
+        const categoryColors = ['#4fc3f7','#ff7043','#66bb6a','#ab47bc','#ffa726','#26c6da','#ec407a','#8d6e63','#78909c','#d4e157','#5c6bc0','#29b6f6','#ef5350','#9ccc65','#ffca28'];
 
         function handleFile(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             document.getElementById('fileName').textContent = file.name;
-
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-
-                processData(jsonData);
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    
+                    // Convert to array of arrays to handle complex header structure
+                    const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
+                    
+                    processRawData(rawData);
+                } catch(err) {
+                    showDebug('Ошибка чтения файла: ' + err.message);
+                }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function processData(jsonData) {
-            // Map columns
-            allData = jsonData.map(row => {
-                let date = row['Дата'] || row['дата'] || '';
-                if (typeof date === 'number') {
-                    // Excel serial date
-                    date = excelDateToJS(date);
-                } else if (typeof date === 'string' && date) {
-                    date = parseDate(date);
+        function showDebug(msg) {
+            const box = document.getElementById('debugBox');
+            box.style.display = 'block';
+            box.textContent = msg;
+        }
+
+        function processRawData(rawData) {
+            // Find the header row by looking for key columns
+            let headerRowIdx = -1;
+            let colMap = {};
+            
+            for (let i = 0; i < Math.min(rawData.length, 20); i++) {
+                const row = rawData[i];
+                if (!row) continue;
+                
+                const rowStr = row.map(c => String(c || '').trim().toLowerCase());
+                
+                // Look for key column names
+                let foundDebit = -1, foundCredit = -1, foundDate = -1, foundClient = -1, foundPurpose = -1;
+                
+                for (let j = 0; j < rowStr.length; j++) {
+                    const cell = rowStr[j];
+                    if (cell.includes('сумма дебит') || cell === 'сумма дебита') foundDebit = j;
+                    if (cell.includes('сумма кредит') || cell === 'сумма кредита') foundCredit = j;
+                    if (cell === 'дата') foundDate = j;
+                    if (cell.includes('наименование кореспондента') || cell.includes('наименование корреспондента') || cell.includes('наим') && cell.includes('коресп')) foundClient = j;
+                    if (cell.includes('назначение платежа') || cell.includes('назначение')) foundPurpose = j;
                 }
+                
+                // If we found at least debit/credit and date, this is our header
+                if ((foundDebit >= 0 || foundCredit >= 0) && foundDate >= 0) {
+                    headerRowIdx = i;
+                    colMap = { debit: foundDebit, credit: foundCredit, date: foundDate, client: foundClient, purpose: foundPurpose };
+                    break;
+                }
+            }
+            
+            if (headerRowIdx === -1) {
+                showDebug('Не удалось найти заголовки. Убедитесь что файл содержит колонки: Сумма дебита, Сумма кредита, Дата, Наименование кореспондента, Назначение платежа');
+                return;
+            }
 
-                const credit = parseNumber(row['Сумма кредита'] || row['сумма кредита'] || 0);
-                const debit = parseNumber(row['Сумма дебита'] || row['сумма дебита'] || 0);
-                // Client name from column D - "Наименование кореспондента"
-                const client = row['Наименование кореспондента'] || row['наименование кореспондента'] || row['Наименование корреспондента'] || row['наименование корреспондента'] || '';
-                const purpose = row['Назначение платежа'] || row['назначение платежа'] || '';
-                const category = categorizePayment(purpose);
+            // Parse data rows (skip header row and any sub-header rows)
+            allData = [];
+            for (let i = headerRowIdx + 1; i < rawData.length; i++) {
+                const row = rawData[i];
+                if (!row || row.length === 0) continue;
+                
+                // Skip summary/total rows
+                const firstCell = String(row[0] || '').toLowerCase();
+                if (firstCell.includes('итого') || firstCell.includes('остаток')) continue;
+                
+                // Skip rows that look like sub-headers (e.g. "Корес" / "понд")
+                const rowJoined = row.join('').trim();
+                if (rowJoined.length < 5) continue;
+                
+                // Get values
+                const dateVal = colMap.date >= 0 ? row[colMap.date] : '';
+                const debitVal = colMap.debit >= 0 ? row[colMap.debit] : 0;
+                const creditVal = colMap.credit >= 0 ? row[colMap.credit] : 0;
+                const clientVal = colMap.client >= 0 ? String(row[colMap.client] || '').trim() : '';
+                const purposeVal = colMap.purpose >= 0 ? String(row[colMap.purpose] || '').trim() : '';
+                
+                // Parse date
+                const date = parseDate(dateVal);
+                if (!date) continue;
+                
+                // Parse numbers
+                const debit = parseNumber(debitVal);
+                const credit = parseNumber(creditVal);
+                
+                // Skip rows with no amounts
+                if (debit === 0 && credit === 0) continue;
+                
+                const category = categorizePayment(purposeVal);
+                
+                allData.push({ date, credit, debit, client: clientVal, purpose: purposeVal, category });
+            }
 
-                return { date, credit, debit, client, purpose, category };
-            }).filter(row => row.date);
+            if (allData.length === 0) {
+                showDebug('Данные не найдены. Проверьте формат файла. Найден заголовок в строке ' + (headerRowIdx + 1) + ', но данные не распознаны.');
+                return;
+            }
 
             // Sort by date
             allData.sort((a, b) => a.date - b.date);
 
-            // Update UI
+            // Hide info/debug, show dashboard
             document.getElementById('infoBox').style.display = 'none';
+            document.getElementById('debugBox').style.display = 'none';
             document.getElementById('kpiSection').style.display = '';
             document.getElementById('chartsSection').style.display = '';
             document.getElementById('tablesSection').style.display = '';
             document.getElementById('operationsSection').style.display = '';
 
-            // Set data date
             if (allData.length > 0) {
-                const lastDate = allData[allData.length - 1].date;
-                document.getElementById('dataDate').textContent = formatDate(lastDate);
+                document.getElementById('dataDate').textContent = formatDate(allData[allData.length - 1].date);
             }
 
             updateKPIs();
@@ -550,361 +251,211 @@
         }
 
         function parseNumber(val) {
+            if (val === null || val === undefined || val === '') return 0;
             if (typeof val === 'number') return val;
-            if (typeof val === 'string') {
-                val = val.replace(/\s/g, '').replace(',', '.');
-                return parseFloat(val) || 0;
+            // Remove spaces, replace comma thousands separator
+            let str = String(val).trim();
+            // Handle format like "4,000,000.00" or "4 000 000.00"
+            str = str.replace(/\s/g, '');
+            // If has both commas and dots: commas are thousands, dot is decimal
+            if (str.includes(',') && str.includes('.')) {
+                str = str.replace(/,/g, '');
+            } 
+            // If only commas: could be thousands separator or decimal
+            else if (str.includes(',') && !str.includes('.')) {
+                // If comma is followed by exactly 2 digits at end, treat as decimal
+                if (/,\d{2}$/.test(str) && (str.match(/,/g) || []).length === 1) {
+                    str = str.replace(',', '.');
+                } else {
+                    str = str.replace(/,/g, '');
+                }
             }
-            return 0;
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
         }
 
-        function excelDateToJS(serial) {
-            const utc_days = Math.floor(serial - 25569);
-            return new Date(utc_days * 86400 * 1000);
-        }
-
-        function parseDate(str) {
-            // Try DD.MM.YYYY
-            const parts = str.split(/[./-]/);
-            if (parts.length === 3) {
-                const day = parseInt(parts[0]);
-                const month = parseInt(parts[1]) - 1;
-                const year = parseInt(parts[2]);
-                if (year > 1900 && month >= 0 && month < 12 && day >= 1 && day <= 31) {
+        function parseDate(val) {
+            if (!val) return null;
+            
+            // If already a Date object
+            if (val instanceof Date && !isNaN(val.getTime())) return val;
+            
+            // If number (Excel serial date)
+            if (typeof val === 'number') {
+                const utc_days = Math.floor(val - 25569);
+                return new Date(utc_days * 86400 * 1000);
+            }
+            
+            let str = String(val).trim();
+            if (!str) return null;
+            
+            // Try format: M/D/YY H:MM or MM/DD/YY (US format from Excel)
+            let match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+            if (match) {
+                let month = parseInt(match[1]) - 1;
+                let day = parseInt(match[2]);
+                let year = parseInt(match[3]);
+                if (year < 100) year += 2000;
+                if (month >= 0 && month < 12 && day >= 1 && day <= 31) {
                     return new Date(year, month, day);
                 }
             }
+            
+            // Try DD.MM.YYYY
+            match = str.match(/^(\d{1,2})[.\-](\d{1,2})[.\-](\d{2,4})/);
+            if (match) {
+                let day = parseInt(match[1]);
+                let month = parseInt(match[2]) - 1;
+                let year = parseInt(match[3]);
+                if (year < 100) year += 2000;
+                if (month >= 0 && month < 12 && day >= 1 && day <= 31) {
+                    return new Date(year, month, day);
+                }
+            }
+            
+            // Try YYYY-MM-DD
+            match = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (match) {
+                let year = parseInt(match[1]);
+                let month = parseInt(match[2]) - 1;
+                let day = parseInt(match[3]);
+                return new Date(year, month, day);
+            }
+            
+            // Fallback
             const d = new Date(str);
             return isNaN(d.getTime()) ? null : d;
         }
 
         function formatDate(date) {
             if (!date) return '';
-            const d = date.getDate().toString().padStart(2, '0');
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}.${m}.${y}`;
+            return date.getDate().toString().padStart(2,'0') + '.' + (date.getMonth()+1).toString().padStart(2,'0') + '.' + date.getFullYear();
         }
 
         function formatNumber(num) {
-            if (num >= 1e9) return (num / 1e9).toFixed(2) + ' млрд';
-            if (num >= 1e6) return (num / 1e6).toFixed(2) + ' млн';
-            if (num >= 1e3) return (num / 1e3).toFixed(1) + ' тыс';
+            if (num >= 1e12) return (num/1e12).toFixed(2) + ' трлн';
+            if (num >= 1e9) return (num/1e9).toFixed(2) + ' млрд';
+            if (num >= 1e6) return (num/1e6).toFixed(2) + ' млн';
+            if (num >= 1e3) return (num/1e3).toFixed(1) + ' тыс';
             return num.toFixed(0);
         }
 
         function categorizePayment(purpose) {
             const p = (purpose || '').toLowerCase();
-            if (p.includes('зарплат') || p.includes('оплата труд')) return 'Зарплата';
-            if (p.includes('налог') || p.includes('ндс') || p.includes('ндфл') || p.includes('налоговая')) return 'Налоги';
-            if (p.includes('аренд')) return 'Аренда';
-            if (p.includes('комм') || p.includes('электр') || p.includes('газ') || p.includes('вода')) return 'Коммунальные';
-            if (p.includes('товар') || p.includes('поставк') || p.includes('материал') || p.includes('закупк')) return 'Закупки';
-            if (p.includes('услуг') || p.includes('сервис') || p.includes('обслуж')) return 'Услуги';
-            if (p.includes('кредит') || p.includes('заем') || p.includes('процент') || p.includes('банк')) return 'Банк/Кредиты';
-            if (p.includes('транспорт') || p.includes('доставк') || p.includes('логист')) return 'Транспорт';
-            if (p.includes('страхов')) return 'Страхование';
-            if (p.includes('реклам') || p.includes('маркетинг')) return 'Реклама';
+            if (p.includes('зарплат') || p.includes('оплата труд') || p.includes('ish haqi') || p.includes('mehnat')) return 'Зарплата';
+            if (p.includes('налог') || p.includes('ндс') || p.includes('ндфл') || p.includes('soliq') || p.includes('qqs') || p.includes('налоговая')) return 'Налоги';
+            if (p.includes('аренд') || p.includes('ijara')) return 'Аренда';
+            if (p.includes('комм') || p.includes('электр') || p.includes('газ') || p.includes('вода') || p.includes('kommunal')) return 'Коммунальные';
+            if (p.includes('товар') || p.includes('поставк') || p.includes('материал') || p.includes('закупк') || p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot')) return 'Закупки';
+            if (p.includes('услуг') || p.includes('сервис') || p.includes('обслуж') || p.includes('xizmat')) return 'Услуги';
+            if (p.includes('кредит') || p.includes('заем') || p.includes('процент') || p.includes('банк') || p.includes('kredit') || p.includes('foiz')) return 'Банк/Кредиты';
+            if (p.includes('транспорт') || p.includes('доставк') || p.includes('логист') || p.includes('tashish') || p.includes('yetkazib')) return 'Транспорт';
+            if (p.includes('страхов') || p.includes("sug'urta")) return 'Страхование';
+            if (p.includes('реклам') || p.includes('маркетинг') || p.includes('reklama')) return 'Реклама';
+            if (p.includes('shartnoma') || p.includes('договор') || p.includes('контракт')) return 'По договору';
+            if (p.includes('tulov') || p.includes('оплат') || p.includes('перевод') || p.includes("o'tkazma")) return 'Оплата';
             return 'Прочее';
         }
 
-        function getMonthKey(date) {
-            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-        }
-
-        function getMonthLabel(key) {
-            const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
-            const [year, month] = key.split('-');
-            return `${months[parseInt(month) - 1]} ${year}`;
-        }
+        function getMonthKey(date) { return date.getFullYear() + '-' + (date.getMonth()+1).toString().padStart(2,'0'); }
+        function getMonthLabel(key) { const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']; const [year, month] = key.split('-'); return months[parseInt(month)-1] + ' ' + year; }
 
         function updateKPIs() {
             const totalCredit = allData.reduce((sum, r) => sum + r.credit, 0);
+            const totalDebit = allData.reduce((sum, r) => sum + r.debit, 0);
             const monthlyData = {};
-            allData.forEach(r => {
-                const key = getMonthKey(r.date);
-                if (!monthlyData[key]) monthlyData[key] = 0;
-                monthlyData[key] += r.credit;
-            });
-
+            allData.forEach(r => { const key = getMonthKey(r.date); if (!monthlyData[key]) monthlyData[key] = 0; monthlyData[key] += r.credit; });
             const monthKeys = Object.keys(monthlyData).sort();
-            const monthCount = monthKeys.length || 1;
-            const avgMonthly = totalCredit / monthCount;
-
-            // Best month
-            let bestMonthKey = '';
-            let bestMonthVal = 0;
-            monthKeys.forEach(key => {
-                if (monthlyData[key] > bestMonthVal) {
-                    bestMonthVal = monthlyData[key];
-                    bestMonthKey = key;
-                }
-            });
-
-            // YoY growth
+            const avgMonthly = totalCredit / (monthKeys.length || 1);
+            let bestMonthKey = '', bestMonthVal = 0;
+            monthKeys.forEach(key => { if (monthlyData[key] > bestMonthVal) { bestMonthVal = monthlyData[key]; bestMonthKey = key; } });
             const yearlyData = {};
-            allData.forEach(r => {
-                const y = r.date.getFullYear();
-                if (!yearlyData[y]) yearlyData[y] = 0;
-                yearlyData[y] += r.credit;
-            });
+            allData.forEach(r => { const y = r.date.getFullYear(); if (!yearlyData[y]) yearlyData[y] = 0; yearlyData[y] += r.credit; });
             const years = Object.keys(yearlyData).sort();
             let growth = 0;
-            if (years.length >= 2) {
-                const lastYear = yearlyData[years[years.length - 1]];
-                const prevYear = yearlyData[years[years.length - 2]];
-                if (prevYear > 0) growth = ((lastYear - prevYear) / prevYear * 100);
-            }
-
+            if (years.length >= 2) { const lastYear = yearlyData[years[years.length-1]]; const prevYear = yearlyData[years[years.length-2]]; if (prevYear > 0) growth = ((lastYear - prevYear) / prevYear * 100); }
             document.getElementById('totalCredit').textContent = formatNumber(totalCredit);
             document.getElementById('avgMonthly').textContent = formatNumber(avgMonthly);
             document.getElementById('bestMonth').textContent = bestMonthKey ? getMonthLabel(bestMonthKey) : '—';
             document.getElementById('bestMonthChange').textContent = bestMonthVal ? formatNumber(bestMonthVal) : '';
             document.getElementById('growthRate').textContent = growth ? growth.toFixed(1) + '%' : '—';
-            document.getElementById('growthRateChange').textContent = growth > 0 ? '&#9650; рост' : growth < 0 ? '&#9660; спад' : '';
+            document.getElementById('growthRateChange').innerHTML = growth > 0 ? '&#9650; рост' : growth < 0 ? '&#9660; спад' : '';
         }
 
         function updateMonthlyChart() {
             const monthlyData = {};
-            allData.forEach(r => {
-                const key = getMonthKey(r.date);
-                if (!monthlyData[key]) monthlyData[key] = { credit: 0, debit: 0 };
-                monthlyData[key].credit += r.credit;
-                monthlyData[key].debit += r.debit;
-            });
-
-            const labels = Object.keys(monthlyData).sort().map(k => getMonthLabel(k));
-            const creditValues = Object.keys(monthlyData).sort().map(k => monthlyData[k].credit);
-            const debitValues = Object.keys(monthlyData).sort().map(k => monthlyData[k].debit);
-
+            allData.forEach(r => { const key = getMonthKey(r.date); if (!monthlyData[key]) monthlyData[key] = {credit:0,debit:0}; monthlyData[key].credit += r.credit; monthlyData[key].debit += r.debit; });
+            const keys = Object.keys(monthlyData).sort();
             if (monthlyChartInstance) monthlyChartInstance.destroy();
-
-            const ctx = document.getElementById('monthlyChart').getContext('2d');
-            monthlyChartInstance = new Chart(ctx, {
+            monthlyChartInstance = new Chart(document.getElementById('monthlyChart').getContext('2d'), {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Кредит',
-                            data: creditValues,
-                            borderColor: '#4fc3f7',
-                            backgroundColor: 'rgba(79, 195, 247, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Дебет',
-                            data: debitValues,
-                            borderColor: '#ff7043',
-                            backgroundColor: 'rgba(255, 112, 67, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) { return formatNumber(value); }
-                            }
-                        }
-                    }
-                }
+                data: { labels: keys.map(k => getMonthLabel(k)), datasets: [
+                    { label: 'Кредит', data: keys.map(k => monthlyData[k].credit), borderColor: '#4fc3f7', backgroundColor: 'rgba(79,195,247,0.1)', fill: true, tension: 0.4 },
+                    { label: 'Дебет', data: keys.map(k => monthlyData[k].debit), borderColor: '#ff7043', backgroundColor: 'rgba(255,112,67,0.1)', fill: true, tension: 0.4 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
             });
         }
 
-        // UPGRADED: Vertical bar chart for "Оборот по категориям"
         function updateCategoryChart() {
             const categoryData = {};
-            allData.forEach(r => {
-                if (!categoryData[r.category]) categoryData[r.category] = { credit: 0, debit: 0 };
-                categoryData[r.category].credit += r.credit;
-                categoryData[r.category].debit += r.debit;
-            });
-
+            allData.forEach(r => { if (!categoryData[r.category]) categoryData[r.category] = {credit:0,debit:0}; categoryData[r.category].credit += r.credit; categoryData[r.category].debit += r.debit; });
             const labels = Object.keys(categoryData);
-            const creditValues = labels.map(k => categoryData[k].credit);
-            const debitValues = labels.map(k => categoryData[k].debit);
-
             if (categoryChartInstance) categoryChartInstance.destroy();
-
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            categoryChartInstance = new Chart(ctx, {
-                type: 'bar',  // Vertical bar chart
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Кредит',
-                            data: creditValues,
-                            backgroundColor: '#4fc3f7',
-                            borderColor: '#039be5',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        },
-                        {
-                            label: 'Дебет',
-                            data: debitValues,
-                            backgroundColor: '#ff7043',
-                            borderColor: '#e64a19',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'x',  // Vertical bars (x-axis = categories)
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 0,
-                                font: { size: 11 }
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) { return formatNumber(value); }
-                            }
-                        }
-                    }
-                }
+            categoryChartInstance = new Chart(document.getElementById('categoryChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels: labels, datasets: [
+                    { label: 'Кредит', data: labels.map(k => categoryData[k].credit), backgroundColor: '#4fc3f7', borderColor: '#039be5', borderWidth: 1, borderRadius: 4 },
+                    { label: 'Дебет', data: labels.map(k => categoryData[k].debit), backgroundColor: '#ff7043', borderColor: '#e64a19', borderWidth: 1, borderRadius: 4 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { position: 'top' } }, scales: { x: { ticks: { maxRotation: 45, minRotation: 0, font: { size: 11 } } }, y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
             });
         }
 
-        // UPGRADED: Top clients use "Наименование кореспондента" (column D) as client name
         function updateTopClients() {
-            // Top debit clients - grouped by client name from column D
+            // Top debit clients - using "Наименование кореспондента" (column D)
             const debitByClient = {};
-            allData.forEach(r => {
-                if (r.debit > 0 && r.client) {
-                    if (!debitByClient[r.client]) debitByClient[r.client] = 0;
-                    debitByClient[r.client] += r.debit;
-                }
-            });
+            allData.forEach(r => { if (r.debit > 0 && r.client) { if (!debitByClient[r.client]) debitByClient[r.client] = 0; debitByClient[r.client] += r.debit; } });
+            const topDebit = Object.entries(debitByClient).sort((a,b) => b[1]-a[1]).slice(0,10);
+            document.querySelector('#topDebitTable tbody').innerHTML = topDebit.map(([client, sum]) => '<tr><td title="'+client+'">'+(client.length > 35 ? client.substring(0,35)+'...' : client)+'</td><td>'+formatNumber(sum)+'</td></tr>').join('');
 
-            const topDebit = Object.entries(debitByClient)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-
-            const debitTbody = document.querySelector('#topDebitTable tbody');
-            debitTbody.innerHTML = topDebit.map(([client, sum]) =>
-                `<tr><td title="${client}">${client.length > 35 ? client.substring(0, 35) + '...' : client}</td><td>${formatNumber(sum)}</td></tr>`
-            ).join('');
-
-            // Top credit clients - grouped by client name from column D
+            // Top credit clients - using "Наименование кореспондента" (column D)
             const creditByClient = {};
-            allData.forEach(r => {
-                if (r.credit > 0 && r.client) {
-                    if (!creditByClient[r.client]) creditByClient[r.client] = 0;
-                    creditByClient[r.client] += r.credit;
-                }
-            });
-
-            const topCredit = Object.entries(creditByClient)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-
-            const creditTbody = document.querySelector('#topCreditTable tbody');
-            creditTbody.innerHTML = topCredit.map(([client, sum]) =>
-                `<tr><td title="${client}">${client.length > 35 ? client.substring(0, 35) + '...' : client}</td><td>${formatNumber(sum)}</td></tr>`
-            ).join('');
+            allData.forEach(r => { if (r.credit > 0 && r.client) { if (!creditByClient[r.client]) creditByClient[r.client] = 0; creditByClient[r.client] += r.credit; } });
+            const topCredit = Object.entries(creditByClient).sort((a,b) => b[1]-a[1]).slice(0,10);
+            document.querySelector('#topCreditTable tbody').innerHTML = topCredit.map(([client, sum]) => '<tr><td title="'+client+'">'+(client.length > 35 ? client.substring(0,35)+'...' : client)+'</td><td>'+formatNumber(sum)+'</td></tr>').join('');
         }
 
         function updateYearlyChart() {
             const yearlyData = {};
-            allData.forEach(r => {
-                const y = r.date.getFullYear();
-                if (!yearlyData[y]) yearlyData[y] = { credit: 0, debit: 0 };
-                yearlyData[y].credit += r.credit;
-                yearlyData[y].debit += r.debit;
-            });
-
+            allData.forEach(r => { const y = r.date.getFullYear(); if (!yearlyData[y]) yearlyData[y] = {credit:0,debit:0}; yearlyData[y].credit += r.credit; yearlyData[y].debit += r.debit; });
             const labels = Object.keys(yearlyData).sort();
-            const creditValues = labels.map(y => yearlyData[y].credit);
-            const debitValues = labels.map(y => yearlyData[y].debit);
-
             if (yearlyChartInstance) yearlyChartInstance.destroy();
-
-            const ctx = document.getElementById('yearlyChart').getContext('2d');
-            yearlyChartInstance = new Chart(ctx, {
+            yearlyChartInstance = new Chart(document.getElementById('yearlyChart').getContext('2d'), {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Кредит',
-                            data: creditValues,
-                            backgroundColor: '#66bb6a',
-                            borderRadius: 4
-                        },
-                        {
-                            label: 'Дебет',
-                            data: debitValues,
-                            backgroundColor: '#ef5350',
-                            borderRadius: 4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) { return formatNumber(value); }
-                            }
-                        }
-                    }
-                }
+                data: { labels: labels, datasets: [
+                    { label: 'Кредит', data: labels.map(y => yearlyData[y].credit), backgroundColor: '#66bb6a', borderRadius: 4 },
+                    { label: 'Дебет', data: labels.map(y => yearlyData[y].debit), backgroundColor: '#ef5350', borderRadius: 4 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
             });
         }
 
         function updateOperationsTable() {
-            const tbody = document.querySelector('#operationsTable tbody');
-            tbody.innerHTML = allData.map(r =>
-                `<tr>
-                    <td>${formatDate(r.date)}</td>
-                    <td title="${r.client}">${r.client.length > 40 ? r.client.substring(0, 40) + '...' : r.client}</td>
-                    <td title="${r.purpose}">${r.purpose.length > 50 ? r.purpose.substring(0, 50) + '...' : r.purpose}</td>
-                    <td><span class="category-badge" style="background:${getCategoryColor(r.category)}20;color:${getCategoryColor(r.category)}">${r.category}</span></td>
-                    <td>${r.credit ? formatNumber(r.credit) : ''}</td>
-                    <td>${r.debit ? formatNumber(r.debit) : ''}</td>
-                </tr>`
+            document.querySelector('#operationsTable tbody').innerHTML = allData.map(r =>
+                '<tr><td>'+formatDate(r.date)+'</td><td title="'+r.client+'">'+(r.client.length > 40 ? r.client.substring(0,40)+'...' : r.client)+'</td><td title="'+r.purpose+'">'+(r.purpose.length > 50 ? r.purpose.substring(0,50)+'...' : r.purpose)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(r.category)+'20;color:'+getCategoryColor(r.category)+'">'+r.category+'</span></td><td>'+(r.credit ? formatNumber(r.credit) : '')+'</td><td>'+(r.debit ? formatNumber(r.debit) : '')+'</td></tr>'
             ).join('');
         }
 
         function getCategoryColor(category) {
-            const categories = ['Зарплата', 'Налоги', 'Аренда', 'Коммунальные', 'Закупки', 'Услуги', 'Банк/Кредиты', 'Транспорт', 'Страхование', 'Реклама', 'Прочее'];
+            const categories = ['Зарплата','Налоги','Аренда','Коммунальные','Закупки','Услуги','Банк/Кредиты','Транспорт','Страхование','Реклама','По договору','Оплата','Прочее'];
             const idx = categories.indexOf(category);
             return categoryColors[idx >= 0 ? idx : categoryColors.length - 1];
         }
 
         function filterOperations() {
             const query = document.getElementById('searchBox').value.toLowerCase();
-            const rows = document.querySelectorAll('#operationsTable tbody tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
-            });
+            document.querySelectorAll('#operationsTable tbody tr').forEach(row => { row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none'; });
         }
     </script>
 </body>
