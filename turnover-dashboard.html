@@ -100,14 +100,14 @@
         <!-- PIE CHARTS FIRST (visible) -->
         <div class="pie-row" id="pieSection" style="display:none;">
             <div class="chart-card">
-                <h3 style="color:#4fc3f7;">&#11014; Оборот по категориям — КРЕДИТ</h3>
-                <div style="position:relative; height: 350px;">
+                <h3 style="color:#0288d1;">&#11014; Оборот по категориям — КРЕДИТ</h3>
+                <div style="position:relative; height: 300px;">
                     <canvas id="categoryCreditChart"></canvas>
                 </div>
             </div>
             <div class="chart-card">
-                <h3 style="color:#ff7043;">&#11015; Оборот по категориям — ДЕБЕТ</h3>
-                <div style="position:relative; height: 350px;">
+                <h3 style="color:#d32f2f;">&#11015; Оборот по категориям — ДЕБЕТ</h3>
+                <div style="position:relative; height: 300px;">
                     <canvas id="categoryDebitChart"></canvas>
                 </div>
             </div>
@@ -396,7 +396,7 @@
         }
 
         // ==========================================
-        // PIE CHARTS WITH ARROWS
+        // HORIZONTAL BAR CHARTS (Pro Design)
         // ==========================================
         function updateCategoryChart() {
             const creditCat = {}, debitCat = {};
@@ -412,50 +412,88 @@
 
             const creditData = sortData(creditCat);
             const debitData = sortData(debitCat);
-            const pieColors = ['#4fc3f7','#66bb6a','#ffa726','#ab47bc','#ef5350','#26c6da','#ec407a','#8d6e63','#d4e157','#78909c'];
 
-            const pieOpts = {
+            // Professional gradient-style colors
+            const creditColors = ['#0288d1','#03a9f4','#4fc3f7','#81d4fa','#b3e5fc','#e1f5fe','#a7c7e7','#5dade2'];
+            const debitColors = ['#d32f2f','#f44336','#ef5350','#e57373','#ef9a9a','#ffcdd2','#ff8a65','#ffab91'];
+
+            const barOptions = (colors) => ({
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { top: 40, bottom: 20, left: 20, right: 20 } },
+                layout: { padding: { right: 80 } },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: function(ctx) { return ctx.label+': '+formatNumber(ctx.raw); } } },
+                    tooltip: { 
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleFont: { size: 13 },
+                        bodyFont: { size: 12 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: { 
+                            label: function(ctx) { 
+                                const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+                                const pct = ((ctx.raw/total)*100).toFixed(1);
+                                return formatNumber(ctx.raw) + ' (' + pct + '%)'; 
+                            } 
+                        } 
+                    },
                     datalabels: {
-                        color: '#333',
-                        font: { size: 11, weight: '600' },
                         anchor: 'end',
-                        align: 'end',
-                        offset: 10,
-                        clamp: true,
-                        clip: false,
+                        align: 'right',
+                        offset: 6,
+                        color: '#555',
+                        font: { size: 11, weight: '600' },
                         formatter: function(value, ctx) {
-                            const label = ctx.chart.data.labels[ctx.dataIndex];
-                            const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
                             const pct = ((value/total)*100).toFixed(1);
-                            return label+'\n'+formatNumber(value)+' ('+pct+'%)';
-                        },
-                        borderColor: function(ctx) { return ctx.dataset.backgroundColor[ctx.dataIndex]; },
-                        borderWidth: 1.5,
-                        borderRadius: 4,
-                        backgroundColor: 'rgba(255,255,255,0.9)',
-                        padding: { top: 4, bottom: 4, left: 6, right: 6 }
+                            return formatNumber(value) + ' (' + pct + '%)';
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                        ticks: { callback: function(v) { return formatNumber(v); }, font: { size: 10 }, color: '#999' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { size: 12, weight: '500' }, color: '#333', padding: 8 }
                     }
                 }
-            };
+            });
 
             if(categoryCreditChartInstance) categoryCreditChartInstance.destroy();
             categoryCreditChartInstance = new Chart(document.getElementById('categoryCreditChart').getContext('2d'), {
-                type: 'pie',
-                data: { labels: creditData.labels, datasets: [{ data: creditData.values, backgroundColor: pieColors.slice(0, creditData.labels.length), borderWidth: 2, borderColor: '#fff' }] },
-                options: pieOpts
+                type: 'bar',
+                data: { 
+                    labels: creditData.labels, 
+                    datasets: [{ 
+                        data: creditData.values, 
+                        backgroundColor: creditColors.slice(0, creditData.labels.length),
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barThickness: 28
+                    }] 
+                },
+                options: barOptions(creditColors)
             });
 
             if(categoryDebitChartInstance) categoryDebitChartInstance.destroy();
             categoryDebitChartInstance = new Chart(document.getElementById('categoryDebitChart').getContext('2d'), {
-                type: 'pie',
-                data: { labels: debitData.labels, datasets: [{ data: debitData.values, backgroundColor: pieColors.slice(0, debitData.labels.length), borderWidth: 2, borderColor: '#fff' }] },
-                options: pieOpts
+                type: 'bar',
+                data: { 
+                    labels: debitData.labels, 
+                    datasets: [{ 
+                        data: debitData.values, 
+                        backgroundColor: debitColors.slice(0, debitData.labels.length),
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barThickness: 28
+                    }] 
+                },
+                options: barOptions(debitColors)
             });
         }
 
