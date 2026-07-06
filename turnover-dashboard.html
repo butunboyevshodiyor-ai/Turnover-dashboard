@@ -97,12 +97,12 @@
             <div class="chart-card"><h3>Динамика оборота по месяцам</h3><div class="chart-container"><canvas id="monthlyChart"></canvas></div></div>
             <div class="chart-card">
                 <h3>Оборот по категориям</h3>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 300px;">
-                    <div style="position:relative; text-align:center;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="position:relative; text-align:center; height: 270px;">
                         <p style="font-size:12px; color:#4fc3f7; font-weight:600; margin-bottom:5px;">КРЕДИТ</p>
                         <canvas id="categoryCreditChart"></canvas>
                     </div>
-                    <div style="position:relative; text-align:center;">
+                    <div style="position:relative; text-align:center; height: 270px;">
                         <p style="font-size:12px; color:#ff7043; font-weight:600; margin-bottom:5px;">ДЕБЕТ</p>
                         <canvas id="categoryDebitChart"></canvas>
                     </div>
@@ -115,13 +115,34 @@
             <div class="table-card"><h3>Оборот по годам</h3><div class="chart-container" style="height:250px;"><canvas id="yearlyChart"></canvas></div></div>
         </div>
         <div class="operations-section" id="operationsSection" style="display:none;">
-            <h3>Все операции</h3>
-            <input type="text" class="search-box" id="searchBox" placeholder="Поиск по операциям..." oninput="filterOperations()">
-            <div style="overflow-x:auto;">
+            <h3>&#128269; Краткий обзор операций</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div style="background:#e8f5e9; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:11px; color:#388e3c; margin-bottom:4px;">Всего операций</div>
+                    <div style="font-size:18px; font-weight:bold; color:#2e7d32;" id="totalOps">0</div>
+                </div>
+                <div style="background:#e3f2fd; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:11px; color:#1565c0; margin-bottom:4px;">Кредитовых</div>
+                    <div style="font-size:18px; font-weight:bold; color:#0d47a1;" id="totalCreditOps">0</div>
+                </div>
+                <div style="background:#fbe9e7; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:11px; color:#d84315; margin-bottom:4px;">Дебетовых</div>
+                    <div style="font-size:18px; font-weight:bold; color:#bf360c;" id="totalDebitOps">0</div>
+                </div>
+                <div style="background:#f3e5f5; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:11px; color:#7b1fa2; margin-bottom:4px;">Контрагентов</div>
+                    <div style="font-size:18px; font-weight:bold; color:#4a148c;" id="totalClients">0</div>
+                </div>
+            </div>
+            <input type="text" class="search-box" id="searchBox" placeholder="&#128269; Поиск по клиенту, назначению, сумме, дате..." oninput="filterOperations()">
+            <div id="searchResults" style="max-height: 350px; overflow-y: auto;">
                 <table class="operations-table" id="operationsTable">
                     <thead><tr><th>Дата</th><th>Наименование кореспондента</th><th>Назначение платежа</th><th>Категория</th><th>Сумма кредита</th><th>Сумма дебита</th></tr></thead>
                     <tbody></tbody>
                 </table>
+            </div>
+            <div id="searchHint" style="text-align:center; padding:30px; color:#999; font-size:13px;">
+                Введите запрос для поиска операций (минимум 2 символа)
             </div>
         </div>
     </div>
@@ -571,10 +592,19 @@
             });
         }
 
+
+
         function updateOperationsTable() {
-            document.querySelector('#operationsTable tbody').innerHTML = allData.map(r =>
-                '<tr><td>'+formatDate(r.date)+'</td><td title="'+r.client+'">'+(r.client.length > 40 ? r.client.substring(0,40)+'...' : r.client)+'</td><td title="'+r.purpose+'">'+(r.purpose.length > 50 ? r.purpose.substring(0,50)+'...' : r.purpose)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(r.category)+'20;color:'+getCategoryColor(r.category)+'">'+r.category+'</span></td><td>'+(r.credit ? formatNumber(r.credit) : '')+'</td><td>'+(r.debit ? formatNumber(r.debit) : '')+'</td></tr>'
-            ).join('');
+            // Update summary stats
+            document.getElementById('totalOps').textContent = allData.length.toLocaleString();
+            document.getElementById('totalCreditOps').textContent = allData.filter(r => r.credit > 0).length.toLocaleString();
+            document.getElementById('totalDebitOps').textContent = allData.filter(r => r.debit > 0).length.toLocaleString();
+            const uniqueClients = new Set(allData.map(r => r.client).filter(c => c));
+            document.getElementById('totalClients').textContent = uniqueClients.size.toLocaleString();
+            
+            // Don't show all operations - show hint instead
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchHint').style.display = 'block';
         }
 
         function getCategoryColor(category) {
@@ -584,8 +614,43 @@
         }
 
         function filterOperations() {
-            const query = document.getElementById('searchBox').value.toLowerCase();
-            document.querySelectorAll('#operationsTable tbody tr').forEach(row => { row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none'; });
+            const query = document.getElementById('searchBox').value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('searchResults');
+            const hintDiv = document.getElementById('searchHint');
+            const tbody = document.querySelector('#operationsTable tbody');
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                hintDiv.style.display = 'block';
+                hintDiv.textContent = 'Введите запрос для поиска операций (минимум 2 символа)';
+                return;
+            }
+            
+            // Filter and show only matching results (max 50)
+            const filtered = allData.filter(r => {
+                const text = (formatDate(r.date) + ' ' + r.client + ' ' + r.purpose + ' ' + r.category).toLowerCase();
+                return text.includes(query);
+            });
+            
+            const limited = filtered.slice(0, 50);
+            
+            if (limited.length === 0) {
+                resultsDiv.style.display = 'none';
+                hintDiv.style.display = 'block';
+                hintDiv.textContent = 'Ничего не найдено по запросу "' + query + '"';
+                return;
+            }
+            
+            hintDiv.style.display = 'none';
+            resultsDiv.style.display = 'block';
+            
+            tbody.innerHTML = limited.map(r =>
+                '<tr><td>'+formatDate(r.date)+'</td><td title="'+r.client+'">'+(r.client.length > 40 ? r.client.substring(0,40)+'...' : r.client)+'</td><td title="'+r.purpose+'">'+(r.purpose.length > 50 ? r.purpose.substring(0,50)+'...' : r.purpose)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(r.category)+'20;color:'+getCategoryColor(r.category)+'">'+r.category+'</span></td><td>'+(r.credit ? formatNumber(r.credit) : '')+'</td><td>'+(r.debit ? formatNumber(r.debit) : '')+'</td></tr>'
+            ).join('');
+            
+            if (filtered.length > 50) {
+                tbody.innerHTML += '<tr><td colspan="6" style="text-align:center; color:#999; padding:10px;">Показано 50 из ' + filtered.length + ' результатов. Уточните запрос.</td></tr>';
+            }
         }
     </script>
 </body>
