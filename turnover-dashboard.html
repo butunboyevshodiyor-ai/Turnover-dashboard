@@ -95,7 +95,19 @@
         </div>
         <div class="charts-row" id="chartsSection" style="display:none;">
             <div class="chart-card"><h3>Динамика оборота по месяцам</h3><div class="chart-container"><canvas id="monthlyChart"></canvas></div></div>
-            <div class="chart-card"><h3>Оборот по категориям</h3><div class="chart-container"><canvas id="categoryChart"></canvas></div></div>
+            <div class="chart-card">
+                <h3>Оборот по категориям</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 300px;">
+                    <div style="position:relative; text-align:center;">
+                        <p style="font-size:12px; color:#4fc3f7; font-weight:600; margin-bottom:5px;">КРЕДИТ</p>
+                        <canvas id="categoryCreditChart"></canvas>
+                    </div>
+                    <div style="position:relative; text-align:center;">
+                        <p style="font-size:12px; color:#ff7043; font-weight:600; margin-bottom:5px;">ДЕБЕТ</p>
+                        <canvas id="categoryDebitChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="tables-row" id="tablesSection" style="display:none;">
             <div class="table-card"><h3>&#11015; Топ клиенты по дебету</h3><table class="data-table" id="topDebitTable"><thead><tr><th>Клиент</th><th>Сумма</th></tr></thead><tbody></tbody></table></div>
@@ -116,7 +128,8 @@
     <script>
         let allData = [];
         let monthlyChartInstance = null;
-        let categoryChartInstance = null;
+        let categoryCreditChartInstance = null;
+        let categoryDebitChartInstance = null;
         let yearlyChartInstance = null;
         const categoryColors = ['#4fc3f7','#ff7043','#66bb6a','#ab47bc','#ffa726','#26c6da','#ec407a','#8d6e63','#78909c','#d4e157','#5c6bc0','#29b6f6','#ef5350','#9ccc65','#ffca28'];
 
@@ -217,7 +230,8 @@
                 // Skip rows with no amounts
                 if (debit === 0 && credit === 0) continue;
                 
-                const category = categorizePayment(purposeVal);
+                const isCredit = credit > 0;
+                const category = categorizePayment(purposeVal, isCredit);
                 
                 allData.push({ date, credit, debit, client: clientVal, purpose: purposeVal, category });
             }
@@ -340,21 +354,74 @@
             return num.toFixed(0);
         }
 
-        function categorizePayment(purpose) {
+        function categorizePayment(purpose, isCredit) {
             const p = (purpose || '').toLowerCase();
-            if (p.includes('зарплат') || p.includes('оплата труд') || p.includes('ish haqi') || p.includes('mehnat')) return 'Зарплата';
-            if (p.includes('налог') || p.includes('ндс') || p.includes('ндфл') || p.includes('soliq') || p.includes('qqs') || p.includes('налоговая')) return 'Налоги';
-            if (p.includes('аренд') || p.includes('ijara')) return 'Аренда';
-            if (p.includes('комм') || p.includes('электр') || p.includes('газ') || p.includes('вода') || p.includes('kommunal')) return 'Коммунальные';
-            if (p.includes('товар') || p.includes('поставк') || p.includes('материал') || p.includes('закупк') || p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot')) return 'Закупки';
-            if (p.includes('услуг') || p.includes('сервис') || p.includes('обслуж') || p.includes('xizmat')) return 'Услуги';
-            if (p.includes('кредит') || p.includes('заем') || p.includes('процент') || p.includes('банк') || p.includes('kredit') || p.includes('foiz')) return 'Банк/Кредиты';
-            if (p.includes('транспорт') || p.includes('доставк') || p.includes('логист') || p.includes('tashish') || p.includes('yetkazib')) return 'Транспорт';
-            if (p.includes('страхов') || p.includes("sug'urta")) return 'Страхование';
-            if (p.includes('реклам') || p.includes('маркетинг') || p.includes('reklama')) return 'Реклама';
-            if (p.includes('shartnoma') || p.includes('договор') || p.includes('контракт')) return 'По договору';
-            if (p.includes('tulov') || p.includes('оплат') || p.includes('перевод') || p.includes("o'tkazma")) return 'Оплата';
-            return 'Прочее';
+            
+            // === CREDIT categories (incoming money) ===
+            if (isCredit) {
+                // Торговые выручки - revenue from sales, contracts, payments received
+                if (p.includes('выручк') || p.includes('реализац') || p.includes('продаж') || p.includes('sotish') || p.includes('savdo') || p.includes('tushum')) return 'Торговые выручки';
+                if (p.includes('оплата по договору') || p.includes('оплата по дог') || p.includes('shartnoma') || p.includes('договор') || p.includes('контракт')) return 'Торговые выручки';
+                if (p.includes('оплата за') && (p.includes('товар') || p.includes('продукц') || p.includes('услуг') || p.includes('работ'))) return 'Торговые выручки';
+                if (p.includes('оплат') || p.includes('tulov') || p.includes('перевод') || p.includes("o'tkazma")) return 'Торговые выручки';
+                if (p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot')) return 'Торговые выручки';
+                // Возврат средств
+                if (p.includes('возврат') || p.includes('qaytarish') || p.includes('qaytaril')) return 'Возврат средств';
+                // Кредиты и займы полученные
+                if (p.includes('кредит') || p.includes('заем') || p.includes('kredit') || p.includes('ssuda')) return 'Кредиты полученные';
+                // Прочие поступления - identify from text
+                if (p.includes('зарплат') || p.includes('ish haqi') || p.includes('mehnat')) return 'Зарплатные поступления';
+                if (p.includes('процент') || p.includes('foiz')) return 'Проценты полученные';
+                if (p.includes('дивиденд') || p.includes('dividend')) return 'Дивиденды';
+                // Extract first meaningful words as category
+                return extractCategory(purpose);
+            }
+            
+            // === DEBIT categories (outgoing money) ===
+            else {
+                // Оплата за товар - purchasing goods
+                if (p.includes('товар') || p.includes('поставк') || p.includes('материал') || p.includes('закупк') || p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('сырье') || p.includes('xom ashyo')) return 'Оплата за товар';
+                if (p.includes('оплата за') || p.includes('оплат') || p.includes('tulov')) {
+                    if (p.includes('товар') || p.includes('продукц') || p.includes('tovar')) return 'Оплата за товар';
+                }
+                // Оплата по договору
+                if (p.includes('shartnoma') || p.includes('договор') || p.includes('контракт')) return 'Оплата по договору';
+                // Зарплата
+                if (p.includes('зарплат') || p.includes('оплата труд') || p.includes('ish haqi') || p.includes('mehnat') || p.includes('maosh')) return 'Зарплата';
+                // Налоги и сборы
+                if (p.includes('налог') || p.includes('ндс') || p.includes('ндфл') || p.includes('soliq') || p.includes('qqs') || p.includes('налоговая') || p.includes('бюджет') || p.includes('byudjet')) return 'Налоги и сборы';
+                // Аренда
+                if (p.includes('аренд') || p.includes('ijara')) return 'Аренда';
+                // Коммунальные платежи
+                if (p.includes('комм') || p.includes('электр') || p.includes('газ') || p.includes('вода') || p.includes('kommunal') || p.includes('отоплен')) return 'Коммунальные';
+                // Услуги
+                if (p.includes('услуг') || p.includes('сервис') || p.includes('обслуж') || p.includes('xizmat')) return 'Оплата за услуги';
+                // Банковские расходы
+                if (p.includes('комисс') || p.includes('банк') || p.includes('bank') || p.includes('кредит') || p.includes('заем') || p.includes('процент') || p.includes('kredit') || p.includes('foiz')) return 'Банковские расходы';
+                // Транспорт
+                if (p.includes('транспорт') || p.includes('доставк') || p.includes('логист') || p.includes('tashish') || p.includes('yetkazib')) return 'Транспортные расходы';
+                // Страхование
+                if (p.includes('страхов') || p.includes("sug'urta")) return 'Страхование';
+                // Реклама
+                if (p.includes('реклам') || p.includes('маркетинг') || p.includes('reklama')) return 'Реклама';
+                // Оплата общая
+                if (p.includes('оплат') || p.includes('tulov') || p.includes('перевод') || p.includes("o'tkazma")) return 'Оплата за товар';
+                // Extract first meaningful words as category
+                return extractCategory(purpose);
+            }
+        }
+
+        // Extract a meaningful short category from the payment purpose text (no "Прочее")
+        function extractCategory(purpose) {
+            if (!purpose || purpose.trim().length === 0) return 'Не указано';
+            const p = purpose.trim();
+            // Try to get first 3-4 meaningful words
+            const words = p.split(/\s+/).filter(w => w.length > 2);
+            if (words.length === 0) return 'Не указано';
+            // Take first 3 words max, capitalize
+            const short = words.slice(0, 3).join(' ');
+            // Limit to 30 chars
+            return short.length > 30 ? short.substring(0, 30) + '...' : short;
         }
 
         function getMonthKey(date) { return date.getFullYear() + '-' + (date.getMonth()+1).toString().padStart(2,'0'); }
@@ -398,17 +465,80 @@
         }
 
         function updateCategoryChart() {
-            const categoryData = {};
-            allData.forEach(r => { if (!categoryData[r.category]) categoryData[r.category] = {credit:0,debit:0}; categoryData[r.category].credit += r.credit; categoryData[r.category].debit += r.debit; });
-            const labels = Object.keys(categoryData);
-            if (categoryChartInstance) categoryChartInstance.destroy();
-            categoryChartInstance = new Chart(document.getElementById('categoryChart').getContext('2d'), {
-                type: 'bar',
-                data: { labels: labels, datasets: [
-                    { label: 'Кредит', data: labels.map(k => categoryData[k].credit), backgroundColor: '#4fc3f7', borderColor: '#039be5', borderWidth: 1, borderRadius: 4 },
-                    { label: 'Дебет', data: labels.map(k => categoryData[k].debit), backgroundColor: '#ff7043', borderColor: '#e64a19', borderWidth: 1, borderRadius: 4 }
-                ]},
-                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { position: 'top' } }, scales: { x: { ticks: { maxRotation: 45, minRotation: 0, font: { size: 11 } } }, y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
+            const creditCategoryData = {};
+            const debitCategoryData = {};
+            
+            allData.forEach(r => {
+                if (r.credit > 0) {
+                    if (!creditCategoryData[r.category]) creditCategoryData[r.category] = 0;
+                    creditCategoryData[r.category] += r.credit;
+                }
+                if (r.debit > 0) {
+                    if (!debitCategoryData[r.category]) debitCategoryData[r.category] = 0;
+                    debitCategoryData[r.category] += r.debit;
+                }
+            });
+
+            // Sort and limit to top 8 categories for readability, merge rest into last
+            function getTopCategories(data, limit) {
+                const sorted = Object.entries(data).sort((a,b) => b[1]-a[1]);
+                if (sorted.length <= limit) return { labels: sorted.map(s=>s[0]), values: sorted.map(s=>s[1]) };
+                const top = sorted.slice(0, limit);
+                const otherSum = sorted.slice(limit).reduce((s, e) => s + e[1], 0);
+                const otherLabel = sorted.slice(limit).map(s => s[0]).join(', ');
+                top.push([otherLabel.length > 30 ? otherLabel.substring(0,30)+'...' : otherLabel, otherSum]);
+                return { labels: top.map(s=>s[0]), values: top.map(s=>s[1]) };
+            }
+
+            const creditTop = getTopCategories(creditCategoryData, 8);
+            const debitTop = getTopCategories(debitCategoryData, 8);
+
+            const pieColors = ['#4fc3f7','#66bb6a','#ffa726','#ab47bc','#ef5350','#26c6da','#ec407a','#8d6e63','#d4e157','#5c6bc0','#ff7043','#29b6f6','#9ccc65','#ffca28','#78909c'];
+
+            // Credit pie chart
+            if (categoryCreditChartInstance) categoryCreditChartInstance.destroy();
+            categoryCreditChartInstance = new Chart(document.getElementById('categoryCreditChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: creditTop.labels,
+                    datasets: [{
+                        data: creditTop.values,
+                        backgroundColor: pieColors.slice(0, creditTop.labels.length),
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 5 } },
+                        tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + formatNumber(ctx.raw); } } }
+                    }
+                }
+            });
+
+            // Debit pie chart
+            if (categoryDebitChartInstance) categoryDebitChartInstance.destroy();
+            categoryDebitChartInstance = new Chart(document.getElementById('categoryDebitChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: debitTop.labels,
+                    datasets: [{
+                        data: debitTop.values,
+                        backgroundColor: pieColors.slice(0, debitTop.labels.length),
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 5 } },
+                        tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + formatNumber(ctx.raw); } } }
+                    }
+                }
             });
         }
 
@@ -448,9 +578,9 @@
         }
 
         function getCategoryColor(category) {
-            const categories = ['Зарплата','Налоги','Аренда','Коммунальные','Закупки','Услуги','Банк/Кредиты','Транспорт','Страхование','Реклама','По договору','Оплата','Прочее'];
+            const categories = ['Торговые выручки','Оплата за товар','Оплата по договору','Зарплата','Налоги и сборы','Аренда','Коммунальные','Оплата за услуги','Банковские расходы','Транспортные расходы','Страхование','Реклама','Возврат средств','Кредиты полученные','Проценты полученные','Зарплатные поступления','Дивиденды'];
             const idx = categories.indexOf(category);
-            return categoryColors[idx >= 0 ? idx : categoryColors.length - 1];
+            return categoryColors[idx >= 0 ? idx % categoryColors.length : Math.abs(category.split('').reduce((a,c) => a + c.charCodeAt(0), 0)) % categoryColors.length];
         }
 
         function filterOperations() {
