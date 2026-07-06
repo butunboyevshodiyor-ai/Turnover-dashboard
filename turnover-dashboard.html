@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLIENT OVERVIEW - Turnover Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -98,11 +99,11 @@
             <div class="chart-card">
                 <h3>Оборот по категориям</h3>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div style="position:relative; text-align:center; height: 270px;">
+                    <div style="position:relative; text-align:center; height: 320px;">
                         <p style="font-size:12px; color:#4fc3f7; font-weight:600; margin-bottom:5px;">КРЕДИТ</p>
                         <canvas id="categoryCreditChart"></canvas>
                     </div>
-                    <div style="position:relative; text-align:center; height: 270px;">
+                    <div style="position:relative; text-align:center; height: 320px;">
                         <p style="font-size:12px; color:#ff7043; font-weight:600; margin-bottom:5px;">ДЕБЕТ</p>
                         <canvas id="categoryDebitChart"></canvas>
                     </div>
@@ -153,6 +154,9 @@
         let categoryDebitChartInstance = null;
         let yearlyChartInstance = null;
         const categoryColors = ['#4fc3f7','#ff7043','#66bb6a','#ab47bc','#ffa726','#26c6da','#ec407a','#8d6e63','#78909c','#d4e157','#5c6bc0','#29b6f6','#ef5350','#9ccc65','#ffca28'];
+
+        // Register datalabels plugin
+        Chart.register(ChartDataLabels);
 
         function handleFile(event) {
             const file = event.target.files[0];
@@ -379,8 +383,7 @@
             const p = (purpose || '').toLowerCase();
             const pTrimmed = (purpose || '').trim();
             
-            // === CODE-BASED CATEGORIZATION (priority) ===
-            // Check payment code at the beginning of назначение платежа
+            // === MAIN PAYMENT GROUPS (by code) ===
             if (pTrimmed.startsWith('00524') || p.includes('00524')) {
                 return isCredit ? 'Торговые выручки' : 'Оплата за товар';
             }
@@ -388,71 +391,8 @@
                 return isCredit ? 'Уставное пополнение' : 'Уставное уменьшение';
             }
             
-            // === CREDIT categories (incoming money) ===
-            if (isCredit) {
-                // Торговые выручки - revenue from sales, contracts, payments received
-                if (p.includes('выручк') || p.includes('реализац') || p.includes('продаж') || p.includes('sotish') || p.includes('savdo') || p.includes('tushum')) return 'Торговые выручки';
-                if (p.includes('оплата по договору') || p.includes('оплата по дог') || p.includes('shartnoma') || p.includes('договор') || p.includes('контракт')) return 'Торговые выручки';
-                if (p.includes('оплата за') && (p.includes('товар') || p.includes('продукц') || p.includes('услуг') || p.includes('работ'))) return 'Торговые выручки';
-                if (p.includes('оплат') || p.includes('tulov') || p.includes('перевод') || p.includes("o'tkazma")) return 'Торговые выручки';
-                if (p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot')) return 'Торговые выручки';
-                // Возврат средств
-                if (p.includes('возврат') || p.includes('qaytarish') || p.includes('qaytaril')) return 'Возврат средств';
-                // Кредиты и займы полученные
-                if (p.includes('кредит') || p.includes('заем') || p.includes('kredit') || p.includes('ssuda')) return 'Кредиты полученные';
-                // Прочие поступления - identify from text
-                if (p.includes('зарплат') || p.includes('ish haqi') || p.includes('mehnat')) return 'Зарплатные поступления';
-                if (p.includes('процент') || p.includes('foiz')) return 'Проценты полученные';
-                if (p.includes('дивиденд') || p.includes('dividend')) return 'Дивиденды';
-                // Extract first meaningful words as category
-                return extractCategory(purpose);
-            }
-            
-            // === DEBIT categories (outgoing money) ===
-            else {
-                // Оплата за товар - purchasing goods
-                if (p.includes('товар') || p.includes('поставк') || p.includes('материал') || p.includes('закупк') || p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('сырье') || p.includes('xom ashyo')) return 'Оплата за товар';
-                if (p.includes('оплата за') || p.includes('оплат') || p.includes('tulov')) {
-                    if (p.includes('товар') || p.includes('продукц') || p.includes('tovar')) return 'Оплата за товар';
-                }
-                // Оплата по договору
-                if (p.includes('shartnoma') || p.includes('договор') || p.includes('контракт')) return 'Оплата по договору';
-                // Зарплата
-                if (p.includes('зарплат') || p.includes('оплата труд') || p.includes('ish haqi') || p.includes('mehnat') || p.includes('maosh')) return 'Зарплата';
-                // Налоги и сборы
-                if (p.includes('налог') || p.includes('ндс') || p.includes('ндфл') || p.includes('soliq') || p.includes('qqs') || p.includes('налоговая') || p.includes('бюджет') || p.includes('byudjet')) return 'Налоги и сборы';
-                // Аренда
-                if (p.includes('аренд') || p.includes('ijara')) return 'Аренда';
-                // Коммунальные платежи
-                if (p.includes('комм') || p.includes('электр') || p.includes('газ') || p.includes('вода') || p.includes('kommunal') || p.includes('отоплен')) return 'Коммунальные';
-                // Услуги
-                if (p.includes('услуг') || p.includes('сервис') || p.includes('обслуж') || p.includes('xizmat')) return 'Оплата за услуги';
-                // Банковские расходы
-                if (p.includes('комисс') || p.includes('банк') || p.includes('bank') || p.includes('кредит') || p.includes('заем') || p.includes('процент') || p.includes('kredit') || p.includes('foiz')) return 'Банковские расходы';
-                // Транспорт
-                if (p.includes('транспорт') || p.includes('доставк') || p.includes('логист') || p.includes('tashish') || p.includes('yetkazib')) return 'Транспортные расходы';
-                // Страхование
-                if (p.includes('страхов') || p.includes("sug'urta")) return 'Страхование';
-                // Реклама
-                if (p.includes('реклам') || p.includes('маркетинг') || p.includes('reklama')) return 'Реклама';
-                // Оплата общая
-                if (p.includes('оплат') || p.includes('tulov') || p.includes('перевод') || p.includes("o'tkazma")) return 'Оплата за товар';
-                // Extract first meaningful words as category
-                return extractCategory(purpose);
-            }
-        }
-
-        // Extract a meaningful short category from the payment purpose text (no "Прочее")
-        function extractCategory(purpose) {
-            if (!purpose || purpose.trim().length === 0) return 'Не указано';
-            const p = purpose.trim();
-            // Try to get first 3-4 meaningful words
-            const words = p.split(/\s+/).filter(w => w.length > 2);
-            if (words.length === 0) return 'Не указано';
-            // Take first 3 words max, capitalize
-            const short = words.slice(0, 3).join(' ');
-            // Limit to 30 chars
-            return short.length > 30 ? short.substring(0, 30) + '...' : short;
+            // === Everything else (commissions, small amounts) = Прочее ===
+            return 'Прочее';
         }
 
         function getMonthKey(date) { return date.getFullYear() + '-' + (date.getMonth()+1).toString().padStart(2,'0'); }
@@ -491,7 +431,7 @@
                     { label: 'Кредит', data: keys.map(k => monthlyData[k].credit), borderColor: '#4fc3f7', backgroundColor: 'rgba(79,195,247,0.1)', fill: true, tension: 0.4 },
                     { label: 'Дебет', data: keys.map(k => monthlyData[k].debit), borderColor: '#ff7043', backgroundColor: 'rgba(255,112,67,0.1)', fill: true, tension: 0.4 }
                 ]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
             });
         }
 
@@ -510,43 +450,62 @@
                 }
             });
 
-            // Sort and limit to top 8 categories for readability, merge rest into last
-            function getTopCategories(data, limit) {
+            function prepareData(data) {
                 const sorted = Object.entries(data).sort((a,b) => b[1]-a[1]);
-                if (sorted.length <= limit) return { labels: sorted.map(s=>s[0]), values: sorted.map(s=>s[1]) };
-                const top = sorted.slice(0, limit);
-                const otherSum = sorted.slice(limit).reduce((s, e) => s + e[1], 0);
-                const otherLabel = sorted.slice(limit).map(s => s[0]).join(', ');
-                top.push([otherLabel.length > 30 ? otherLabel.substring(0,30)+'...' : otherLabel, otherSum]);
-                return { labels: top.map(s=>s[0]), values: top.map(s=>s[1]) };
+                return { labels: sorted.map(s=>s[0]), values: sorted.map(s=>s[1]) };
             }
 
-            const creditTop = getTopCategories(creditCategoryData, 8);
-            const debitTop = getTopCategories(debitCategoryData, 8);
+            const creditData = prepareData(creditCategoryData);
+            const debitData = prepareData(debitCategoryData);
 
-            const pieColors = ['#4fc3f7','#66bb6a','#ffa726','#ab47bc','#ef5350','#26c6da','#ec407a','#8d6e63','#d4e157','#5c6bc0','#ff7043','#29b6f6','#9ccc65','#ffca28','#78909c'];
+            const pieColors = ['#4fc3f7','#66bb6a','#ffa726','#ab47bc','#ef5350','#26c6da','#ec407a','#8d6e63','#d4e157','#5c6bc0'];
+
+            const pieOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 30, bottom: 10, left: 10, right: 10 } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + formatNumber(ctx.raw); } } },
+                    datalabels: {
+                        color: '#333',
+                        font: { size: 10, weight: 'bold' },
+                        anchor: 'end',
+                        align: 'end',
+                        offset: 8,
+                        clamp: true,
+                        clip: false,
+                        formatter: function(value, ctx) {
+                            const label = ctx.chart.data.labels[ctx.dataIndex];
+                            const total = ctx.chart.data.datasets[0].data.reduce((a,b) => a+b, 0);
+                            const pct = ((value / total) * 100).toFixed(1);
+                            return label + '\n' + formatNumber(value) + ' (' + pct + '%)';
+                        },
+                        borderColor: function(ctx) {
+                            return ctx.dataset.backgroundColor[ctx.dataIndex];
+                        },
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        backgroundColor: 'rgba(255,255,255,0.85)',
+                        padding: { top: 3, bottom: 3, left: 5, right: 5 }
+                    }
+                }
+            };
 
             // Credit pie chart
             if (categoryCreditChartInstance) categoryCreditChartInstance.destroy();
             categoryCreditChartInstance = new Chart(document.getElementById('categoryCreditChart').getContext('2d'), {
                 type: 'pie',
                 data: {
-                    labels: creditTop.labels,
+                    labels: creditData.labels,
                     datasets: [{
-                        data: creditTop.values,
-                        backgroundColor: pieColors.slice(0, creditTop.labels.length),
-                        borderWidth: 1,
+                        data: creditData.values,
+                        backgroundColor: pieColors.slice(0, creditData.labels.length),
+                        borderWidth: 2,
                         borderColor: '#fff'
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 5 } },
-                        tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + formatNumber(ctx.raw); } } }
-                    }
-                }
+                options: pieOptions
             });
 
             // Debit pie chart
@@ -554,22 +513,15 @@
             categoryDebitChartInstance = new Chart(document.getElementById('categoryDebitChart').getContext('2d'), {
                 type: 'pie',
                 data: {
-                    labels: debitTop.labels,
+                    labels: debitData.labels,
                     datasets: [{
-                        data: debitTop.values,
-                        backgroundColor: pieColors.slice(0, debitTop.labels.length),
-                        borderWidth: 1,
+                        data: debitData.values,
+                        backgroundColor: pieColors.slice(0, debitData.labels.length),
+                        borderWidth: 2,
                         borderColor: '#fff'
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 5 } },
-                        tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + formatNumber(ctx.raw); } } }
-                    }
-                }
+                options: pieOptions
             });
         }
 
@@ -598,7 +550,7 @@
                     { label: 'Кредит', data: labels.map(y => yearlyData[y].credit), backgroundColor: '#66bb6a', borderRadius: 4 },
                     { label: 'Дебет', data: labels.map(y => yearlyData[y].debit), backgroundColor: '#ef5350', borderRadius: 4 }
                 ]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return formatNumber(v); } } } } }
             });
         }
 
