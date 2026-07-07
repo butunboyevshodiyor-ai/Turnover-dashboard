@@ -327,22 +327,6 @@
         // ==========================================
         // CATEGORIZATION LOGIC
         // ==========================================
-        function categorizePayment(purpose, isCredit, clientName, ourClientName) {
-            const p = (purpose || '').toLowerCase();
-            const client = (clientName || '').toLowerCase();
-            const ourClient = (ourClientName || '').toLowerCase();
-            
-            // === 01007 SPECIAL LOGIC ===
-            // If 01007 and from same client (our company) = Овердрафт
-            // If 01007 and from other clients = Торговые выручки / Оплата за товар
-            if (p.includes('01007')) {
-                const isSameClient = ourClient && client && (client.includes(ourClient) || ourClient.includes(client) || client === ourClient);
-                if (isSameClient) {
-                    return 'Овердрафт';
-                } else {
-                    return isCredit ? 'Торговые выручки' : 'Оплата за товар и услуги';
-                }
-            }
             
             if (isCredit) {
                 // --- КРЕДИТ ---
