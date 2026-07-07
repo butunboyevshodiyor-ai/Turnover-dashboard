@@ -323,8 +323,10 @@
             updateTopClients();
             updateOperationsTable();
         }           
-         
-                if (isCredit) {
+    
+        function categorizePayment(purposeVal, isCredit, clientVal, ourClientName) {
+            const p = purposeVal.toLowerCase();
+            if (isCredit) {
                 // --- КРЕДИТ ---
                 // Торговые выручки
                 if (p.includes('00524') || p.includes('00668')) return 'Торговые выручки';
