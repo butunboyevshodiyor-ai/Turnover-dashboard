@@ -11,7 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Times new roman', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
         .sidebar { width: 250px; background: #1a1a2e; color: #fff; padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; }
         .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid #333; font-size: 18px; font-weight: bold; }
         .sidebar-nav { list-style: none; padding: 20px 0; }
@@ -408,7 +408,7 @@
                 // Кредит погашения
                 if (p.includes('кред') && p.includes('пога')) return 'Кредит погашения';
                 if (p.includes('кредит') || p.includes('kredit') || p.includes('погашени') || p.includes('основного долга') || p.includes('asosiy qarz') || p.includes('foiz') || p.includes('пеня') || p.includes('пени')) return 'Кредит погашения';
-                if (p.includes ('Сч. для погаш.по кред.') return 'Кредит погашения';
+                if (p.includes ('Сч. для погаш.по кред.')) return 'Кредит погашения';
                 return 'Прочее';
             }
         }
