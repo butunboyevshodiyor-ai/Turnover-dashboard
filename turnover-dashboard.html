@@ -363,7 +363,7 @@
             } else {
                 // --- ДЕБЕТ ---
                 // Оплата за товар и услуги
-                if (p.includes('00524') || p.includes('00668')) return 'Оплата за товар и услуги';
+                if (p.includes('00524') || p.includes('005023') || p.includes('00668')) return 'Оплата за товар и услуги';
                 if (p.includes('smart vista')) return 'Оплата за товар и услуги';
                 if (p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци')) return 'Оплата за товар и услуги';
                 if (p.includes('аванс') || p.includes('avans')) return 'Оплата за товар и услуги';
