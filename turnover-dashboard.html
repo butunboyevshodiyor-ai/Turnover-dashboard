@@ -174,7 +174,6 @@
         let categoryDebitChartInstance = null;
         const categoryColors = ['#4fc3f7','#ff7043','#66bb6a','#ab47bc','#ffa726','#26c6da','#ec407a','#8d6e63','#78909c','#d4e157','#5c6bc0','#29b6f6','#ef5350','#9ccc65','#ffca28'];
 
-        // Register datalabels plugin
         Chart.register(ChartDataLabels);
 
         function handleFile(event) {
@@ -207,25 +206,21 @@
             let headerRowIdx = -1;
             let colMap = {};
             let ourClientName = '';
-            
-            // First scan: find our client name from metadata rows
+
             for (let i = 0; i < Math.min(rawData.length, 20); i++) {
                 const row = rawData[i];
                 if (!row) continue;
                 for (let j = 0; j < row.length; j++) {
                     const cell = String(row[j] || '').trim();
-                    // Look for "Наименование клиента" column header or client name pattern
                     if (cell.toLowerCase().includes('наименование клиента')) {
-                        // The client name might be in next column or next row
                         if (j+1 < row.length && row[j+1]) ourClientName = String(row[j+1]).trim();
                     }
-                    // Also check for patterns like 'ООО "..."' or account holder info
                     if (cell.match(/^(ООО|OOO|МЧЖ|MCHJ|АО|ЧП|ИП)\s*["«]?.+["»]?$/i) && !ourClientName) {
                         ourClientName = cell;
                     }
                 }
             }
-            
+
             for (let i = 0; i < Math.min(rawData.length, 20); i++) {
                 const row = rawData[i];
                 if (!row) continue;
@@ -242,20 +237,16 @@
                 if ((foundDebit >= 0 || foundCredit >= 0) && foundDate >= 0) {
                     headerRowIdx = i;
                     colMap = { debit: foundDebit, credit: foundCredit, date: foundDate, client: foundClient, purpose: foundPurpose };
-                    // Also try to get our client name from "Наименование клиента" column (index 1 usually)
                     break;
                 }
             }
-            
-            // If we didn't find client name from metadata, try from the first data row's "Наименование клиента" column
+
             if (!ourClientName && headerRowIdx >= 0) {
-                // Check header row for "наименование клиента" column
                 const hRow = rawData[headerRowIdx];
                 for (let j = 0; j < hRow.length; j++) {
                     if (String(hRow[j] || '').toLowerCase().includes('наименование клиента')) {
-                        // Get value from first data row
                         if (headerRowIdx + 2 < rawData.length) {
-                            const firstDataRow = rawData[headerRowIdx + 2]; // skip sub-header
+                            const firstDataRow = rawData[headerRowIdx + 2];
                             if (firstDataRow && firstDataRow[j]) ourClientName = String(firstDataRow[j]).trim();
                         }
                         if (!ourClientName && headerRowIdx + 1 < rawData.length) {
@@ -265,7 +256,7 @@
                     }
                 }
             }
-            
+
             if (headerRowIdx === -1) {
                 showDebug('Не удалось найти заголовки. Убедитесь что файл содержит колонки: Сумма дебита, Сумма кредита, Дата');
                 return;
@@ -279,19 +270,19 @@
                 if (firstCell.includes('итого') || firstCell.includes('остаток')) continue;
                 const rowJoined = row.join('').trim();
                 if (rowJoined.length < 5) continue;
-                
+
                 const dateVal = colMap.date >= 0 ? row[colMap.date] : '';
                 const debitVal = colMap.debit >= 0 ? row[colMap.debit] : 0;
                 const creditVal = colMap.credit >= 0 ? row[colMap.credit] : 0;
                 const clientVal = colMap.client >= 0 ? String(row[colMap.client] || '').trim() : '';
                 const purposeVal = colMap.purpose >= 0 ? String(row[colMap.purpose] || '').trim() : '';
-                
+
                 const date = parseDate(dateVal);
                 if (!date) continue;
                 const debit = parseNumber(debitVal);
                 const credit = parseNumber(creditVal);
                 if (debit === 0 && credit === 0) continue;
-                
+
                 const isCredit = credit > 0;
                 const category = categorizePayment(purposeVal, isCredit, clientVal, ourClientName);
                 allData.push({ date, credit, debit, client: clientVal, purpose: purposeVal, category });
@@ -322,13 +313,15 @@
             updateMonthlyChart();
             updateTopClients();
             updateOperationsTable();
-        }           
-    
+        }
+
         function categorizePayment(purposeVal, isCredit, clientVal, ourClientName) {
             const p = purposeVal.toLowerCase();
             if (isCredit) {
                 // --- КРЕДИТ ---
-                // Торговые выручки
+                // Возврат Налог (checked first — tax codes must always win, even if text also says "оплата")
+                if (p.includes('08101') || p.includes('08108')) return 'Возврат Налог';
+
                 if (p.includes('00524') || p.includes('00668')) return 'Торговые выручки';
                 if (p.includes('smart vista')) return 'Торговые выручки';
                 if (p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци')) return 'Торговые выручки';
@@ -336,72 +329,60 @@
                 if (p.includes('аванс') || p.includes('avans')) return 'Торговые выручки';
                 if (p.includes('оплата') || p.includes('оплат')) return 'Торговые выручки';
                 if (p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('реализац') || p.includes('выручк') || p.includes('savdo') || p.includes('tushum')) return 'Торговые выручки';
-                
-                // Возврат Фин займ
+
                 if (p.includes('фин займ') || p.includes('фин. займ') || p.includes('финансовый займ') || p.includes('займ')) return 'Возврат Фин займ';
                 if (p.includes('молиявий') || p.includes('молиявий ёрдам') || p.includes('moliyaviy')) return 'Возврат Фин займ';
-                if (p.includes ('00698') || p.includes ('00659')) return 'Возврат Фин займ';
-                
-                // Пополнения уставного фонда
+                if (p.includes('00698') || p.includes('00659')) return 'Возврат Фин займ';
+
                 if (p.includes('00624')) return 'Пополнения уставного фонда';
                 if (p.includes('устав') || p.includes('пополнени') || p.includes('попольнени') || p.includes('уставн') || p.includes('ustav') || p.includes('nizom fondi')) return 'Пополнения уставного фонда';
-                
-                // Возврат Налог
-                if (p.includes('возврат') || p.includes('ндс') || p.includes('налог') || p.includes('гнк') || p.includes('soliq') || p.includes('TAX')) return 'Возврат Налог';
+
+                if (p.includes('возврат') || p.includes('ндс') || p.includes('налог') || p.includes('гнк') || p.includes('soliq') || p.includes('tax') || p.includes('08101') || p.includes('08108')) return 'Возврат Налог';
                 if (p.includes('гнк')) return 'Возврат Налог';
                 if (p.includes('согласно заключени') || p.includes('согласно закл')) return 'Возврат Налог';
-                
-                // Переброска
+
                 if (p.includes('иккиламчи') || p.includes('асосий') || p.includes('ҳисобрақам') || p.includes('хисобракам')) return 'Переброска';
                 if (p.includes('ўтказма') || p.includes('утказма') || p.includes("o'tkazma")) return 'Переброска';
                 if (p.includes('перевод') || p.includes('денежных средств') || p.includes('денежных срдеств')) return 'Переброска';
                 if (p.includes('вторичн')) return 'Переброска';
-                
-                // Овердрафт
-                if (p.includes('контокоррент') || p.includes('контокоррент кредит') || p.includes('овердрафт') || p.includes('overdraft')) return 'Овердраф'
+
+                if (p.includes('контокоррент') || p.includes('контокоррент кредит') || p.includes('овердрафт') || p.includes('overdraft')) return 'Овердраф';
                 return 'Прочее';
             } else {
                 // --- ДЕБЕТ ---
-                // Оплата за товар и услуги
+                // Оплата Налог (checked first — tax codes must always win, even if text also says "оплата")
+                if (p.includes('08101') || p.includes('08102') || p.includes('08108')) return 'Оплата в бюджет-налог, тамож. пош.';
+
                 if (p.includes('00524') || p.includes('005023') || p.includes('00668')) return 'Оплата за товар и услуги';
                 if (p.includes('smart vista')) return 'Оплата за товар и услуги';
                 if (p.includes('оплата за товар') || p.includes('оплата за продукц') || p.includes('за товар') || p.includes('продукци')) return 'Оплата за товар и услуги';
                 if (p.includes('аванс') || p.includes('avans')) return 'Оплата за товар и услуги';
                 if (p.includes('оплата') || p.includes('оплат')) return 'Оплата за товар и услуги';
                 if (p.includes('sotib olish') || p.includes('tovar') || p.includes('mahsulot') || p.includes('поставк') || p.includes('материал') || p.includes('закупк') || p.includes('услуг') || p.includes('xizmat')) return 'Оплата за товар и услуги';
-                
-                // Возврат Фин займ
+
                 if (p.includes('фин займ') || p.includes('фин. займ') || p.includes('финансовый займ') || p.includes('займ')) return 'Возврат Фин займ';
                 if (p.includes('молиявий') || p.includes('молиявий ёрдам') || p.includes('moliyaviy')) return 'Возврат Фин займ';
-                if (p.includes ('00698') || p.includes ('00659')) return 'Возврат Фин займ';
-                
-                // Переброска (check before Устав to catch transfers)
+                if (p.includes('00698') || p.includes('00659')) return 'Возврат Фин займ';
+
                 if (p.includes('иккиламчи') || p.includes('асосий') || p.includes('ҳисобрақам') || p.includes('хисобракам')) return 'Переброска';
                 if (p.includes('ўтказма') || p.includes('утказма') || p.includes("o'tkazma")) return 'Переброска';
                 if (p.includes('перевод') || p.includes('денежных средств') || p.includes('денежных срдеств')) return 'Переброска';
                 if (p.includes('вторичн')) return 'Переброска';
-                
-                // Уменьшения уставного фонда
+
                 if (p.includes('00624')) return 'Уменьшения уставного фонда';
                 if (p.includes('устав') || p.includes('пополнени') || p.includes('попольнени') || p.includes('уставн') || p.includes('ustav') || p.includes('nizom fondi')) return 'Уменьшения уставного фонда';
-                
-                // Оплата Налог
-                if (p.includes('ндс') || p.includes('08102') || p.includes('гнк') || p.includes('TAX') || p.includes('налог') || p.includes('soliq') || p.includes('ққс') || p.includes('qqs') || p.includes('бюджет') || p.includes('byudjet') || p.includes('ндфл')) return 'Оплата Налог';
-                
-                // Кредит погашения
+
+                if (p.includes('ндс') || p.includes('08101') || p.includes('08102') || p.includes('08108') || p.includes('гнк') || p.includes('tax') || p.includes('налог') || p.includes('soliq') || p.includes('ққс') || p.includes('qqs') || p.includes('бюджет') || p.includes('byudjet') || p.includes('ндфл')) return 'Оплата Налог';
+
                 if (p.includes('кред') && p.includes('пога')) return 'Кредит погашения';
                 if (p.includes('кредит') || p.includes('kredit') || p.includes('погашени') || p.includes('основного долга') || p.includes('asosiy qarz') || p.includes('foiz') || p.includes('пеня') || p.includes('пени')) return 'Кредит погашения';
-                if (p.includes ('01008')) return 'Кредит погашения';
-             
-                // Овердрафт
-                if (p.includes('контокоррент') || p.includes('контокоррент кредит') || p.includes('овердрафт') || p.includes('overdraft')) return 'Овердраф'
+                if (p.includes('01008')) return 'Кредит погашения';
+
+                if (p.includes('контокоррент') || p.includes('контокоррент кредит') || p.includes('овердрафт') || p.includes('overdraft')) return 'Овердраф';
                 return 'Прочее';
             }
         }
 
-        // ==========================================
-        // UTILITY FUNCTIONS
-        // ==========================================
         function parseNumber(val) {
             if (val === null || val === undefined || val === '') return 0;
             if (typeof val === 'number') return val;
@@ -436,9 +417,6 @@
         function getMonthKey(date) { return date.getFullYear()+'-'+(date.getMonth()+1).toString().padStart(2,'0'); }
         function getMonthLabel(key) { const months=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']; const [y,m]=key.split('-'); return months[parseInt(m)-1]+' '+y; }
 
-        // ==========================================
-        // KPI
-        // ==========================================
         function updateKPIs() {
             const totalCredit = allData.reduce((s,r) => s+r.credit, 0);
             const monthlyData = {};
@@ -460,9 +438,6 @@
             document.getElementById('growthRateChange').innerHTML = growth>0 ? '&#9650; рост' : growth<0 ? '&#9660; спад' : '';
         }
 
-        // ==========================================
-        // VERTICAL BAR CHARTS (Pro Design)
-        // ==========================================
         function updateCategoryChart() {
             const creditCat = {}, debitCat = {};
             allData.forEach(r => {
@@ -478,7 +453,6 @@
             const creditData = sortData(creditCat);
             const debitData = sortData(debitCat);
 
-            // Pro gradient colors
             const creditColors = ['#1565c0','#1976d2','#1e88e5','#2196f3','#42a5f5','#64b5f6','#90caf9','#bbdefb'];
             const debitColors = ['#c62828','#d32f2f','#e53935','#f44336','#ef5350','#e57373','#ef9a9a','#ffcdd2'];
 
@@ -573,9 +547,6 @@
             });
         }
 
-        // ==========================================
-        // MONTHLY CHART (full width below)
-        // ==========================================
         function updateMonthlyChart() {
             const monthlyData = {};
             allData.forEach(r => { const k=getMonthKey(r.date); if(!monthlyData[k]) monthlyData[k]={credit:0,debit:0}; monthlyData[k].credit+=r.credit; monthlyData[k].debit+=r.debit; });
@@ -591,35 +562,29 @@
             });
         }
 
-        // ==========================================
-        // TOP CLIENTS & YEARLY
-        // ==========================================
         function updateTopClients() {
-            // Top debit clients with SHORT category name
             const debitByClient = {};
-            allData.forEach(r => { 
-                if(r.debit>0 && r.client) { 
+            allData.forEach(r => {
+                if(r.debit>0 && r.client) {
                     const key = r.client;
                     if(!debitByClient[key]) debitByClient[key] = { sum: 0, category: r.category };
                     debitByClient[key].sum += r.debit;
-                    // Keep the dominant category (most frequent)
                     if(r.debit > debitByClient[key].sum / 2) debitByClient[key].category = r.category;
-                } 
+                }
             });
             const topDebit = Object.entries(debitByClient).sort((a,b)=>b[1].sum-a[1].sum).slice(0,10);
             document.querySelector('#topDebitTable tbody').innerHTML = topDebit.map(([c,data])=>{
                 return '<tr><td title="'+c+'">'+(c.length>28?c.substring(0,28)+'...':c)+'</td><td><span class="category-badge" style="background:'+getCategoryColor(data.category)+'20;color:'+getCategoryColor(data.category)+'">'+data.category+'</span></td><td><strong>'+formatNumber(data.sum)+'</strong></td></tr>';
             }).join('');
 
-            // Top credit clients with SHORT category name
             const creditByClient = {};
-            allData.forEach(r => { 
-                if(r.credit>0 && r.client) { 
+            allData.forEach(r => {
+                if(r.credit>0 && r.client) {
                     const key = r.client;
                     if(!creditByClient[key]) creditByClient[key] = { sum: 0, category: r.category };
                     creditByClient[key].sum += r.credit;
                     if(r.credit > creditByClient[key].sum / 2) creditByClient[key].category = r.category;
-                } 
+                }
             });
             const topCredit = Object.entries(creditByClient).sort((a,b)=>b[1].sum-a[1].sum).slice(0,10);
             document.querySelector('#topCreditTable tbody').innerHTML = topCredit.map(([c,data])=>{
@@ -627,9 +592,6 @@
             }).join('');
         }
 
-        // ==========================================
-        // OPERATIONS OVERVIEW
-        // ==========================================
         function updateOperationsTable() {
             document.getElementById('totalOps').textContent = allData.length.toLocaleString();
             document.getElementById('totalCreditOps').textContent = allData.filter(r=>r.credit>0).length.toLocaleString();
@@ -651,17 +613,17 @@
             const resultsDiv = document.getElementById('searchResults');
             const hintDiv = document.getElementById('searchHint');
             const tbody = document.querySelector('#operationsTable tbody');
-            
+
             if(query.length < 2) { resultsDiv.style.display='none'; hintDiv.style.display='block'; hintDiv.textContent='Введите запрос для поиска операций (минимум 2 символа)'; return; }
-            
+
             const filtered = allData.filter(r => {
                 const text = (formatDate(r.date)+' '+r.client+' '+r.purpose+' '+r.category).toLowerCase();
                 return text.includes(query);
             });
             const limited = filtered.slice(0, 50);
-            
+
             if(limited.length===0) { resultsDiv.style.display='none'; hintDiv.style.display='block'; hintDiv.textContent='Ничего не найдено по запросу "'+query+'"'; return; }
-            
+
             hintDiv.style.display='none';
             resultsDiv.style.display='block';
             tbody.innerHTML = limited.map(r=>
@@ -670,14 +632,11 @@
             if(filtered.length>50) { tbody.innerHTML += '<tr><td colspan="6" style="text-align:center;color:#999;padding:10px;">Показано 50 из '+filtered.length+' результатов. Уточните запрос.</td></tr>'; }
         }
 
-        // ==========================================
-        // PDF EXPORT
-        // ==========================================
         async function exportPDF() {
             const btn = document.getElementById('pdfBtn');
             btn.textContent = '⏳ Генерация PDF...';
             btn.disabled = true;
-            
+
             try {
                 const content = document.querySelector('.main-content');
                 const canvas = await html2canvas(content, {
@@ -688,31 +647,29 @@
                     windowWidth: content.scrollWidth,
                     windowHeight: content.scrollHeight
                 });
-                
+
                 const { jsPDF } = window.jspdf;
                 const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 297; // A4 landscape width in mm
+                const imgWidth = 297;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
+
                 const pdf = new jsPDF({
                     orientation: imgHeight > 210 ? 'portrait' : 'landscape',
                     unit: 'mm',
                     format: 'a4'
                 });
-                
+
                 const pageWidth = pdf.internal.pageSize.getWidth();
                 const pageHeight = pdf.internal.pageSize.getHeight();
                 const scaledWidth = pageWidth;
                 const scaledHeight = (canvas.height * scaledWidth) / canvas.width;
-                
-                // If content fits in one page
+
                 if (scaledHeight <= pageHeight) {
                     pdf.addImage(imgData, 'PNG', 0, 0, scaledWidth, scaledHeight);
                 } else {
-                    // Multi-page
                     let position = 0;
                     let remaining = scaledHeight;
-                    
+
                     while (remaining > 0) {
                         pdf.addImage(imgData, 'PNG', 0, position, scaledWidth, scaledHeight);
                         remaining -= pageHeight;
@@ -720,13 +677,13 @@
                         if (remaining > 0) pdf.addPage();
                     }
                 }
-                
+
                 const fileName = 'Turnover_Dashboard_' + new Date().toISOString().split('T')[0] + '.pdf';
                 pdf.save(fileName);
             } catch(err) {
                 alert('Ошибка при создании PDF: ' + err.message);
             }
-            
+
             btn.innerHTML = '&#128196; Скачать PDF';
             btn.disabled = false;
         }
