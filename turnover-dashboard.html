@@ -347,7 +347,7 @@
                 if (p.includes('устав') || p.includes('пополнени') || p.includes('попольнени') || p.includes('уставн') || p.includes('ustav') || p.includes('nizom fondi')) return 'Пополнения уставного фонда';
                 
                 // Возврат Налог
-                if (p.includes('возврат') && (p.includes('ндс') || p.includes('налог') || p.includes('гнк') || p.includes('soliq'))) return 'Возврат Налог';
+                if (p.includes('возврат') || p.includes('ндс') || p.includes('налог') || p.includes('гнк') || p.includes('soliq') || p.includes('TAX')) return 'Возврат Налог';
                 if (p.includes('гнк')) return 'Возврат Налог';
                 if (p.includes('согласно заключени') || p.includes('согласно закл')) return 'Возврат Налог';
                 
@@ -386,7 +386,7 @@
                 if (p.includes('устав') || p.includes('пополнени') || p.includes('попольнени') || p.includes('уставн') || p.includes('ustav') || p.includes('nizom fondi')) return 'Уменьшения уставного фонда';
                 
                 // Оплата Налог
-                if (p.includes('ндс') || p.includes('гнк') || p.includes('налог') || p.includes('soliq') || p.includes('ққс') || p.includes('qqs') || p.includes('бюджет') || p.includes('byudjet') || p.includes('ндфл')) return 'Оплата Налог';
+                if (p.includes('ндс') || p.includes('гнк') || p.includes('TAX') || p.includes('налог') || p.includes('soliq') || p.includes('ққс') || p.includes('qqs') || p.includes('бюджет') || p.includes('byudjet') || p.includes('ндфл')) return 'Оплата Налог';
                 
                 // Кредит погашения
                 if (p.includes('кред') && p.includes('пога')) return 'Кредит погашения';
